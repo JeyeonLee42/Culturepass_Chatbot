@@ -127,8 +127,9 @@
     }
 
     .chat-panel {
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: minmax(0, 1fr);
       border-right: 1px solid var(--border);
+      overflow: auto;
     }
 
     .chat-header {
@@ -507,11 +508,67 @@
     }
 
     .omakase-panel {
-      border-bottom: 1px solid var(--border);
       padding: 14px 18px;
       display: grid;
       gap: 12px;
       background: #fbfafc;
+      align-content: start;
+      overflow: auto;
+    }
+
+    .floating-chat {
+      position: fixed;
+      right: max(18px, calc((100vw - 1220px) / 2 + 18px));
+      bottom: 78px;
+      width: min(520px, calc(100vw - 36px));
+      height: min(680px, calc(100vh - 112px));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--white);
+      box-shadow: 0 18px 50px rgba(26, 24, 48, 0.2);
+      display: none;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      z-index: 20;
+    }
+
+    .floating-chat.open {
+      display: grid;
+    }
+
+    .chat-toggle {
+      position: fixed;
+      right: max(18px, calc((100vw - 1220px) / 2 + 18px));
+      bottom: 20px;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      box-shadow: var(--shadow-md);
+      font-weight: 850;
+      z-index: 21;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-badge {
+      border-radius: 999px;
+      padding: 3px 7px;
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .chat-close {
+      border: 0;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: var(--purple-light);
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .omakase-head {
@@ -848,6 +905,20 @@
         align-items: flex-start;
         flex-direction: column;
       }
+
+      .floating-chat {
+        left: 10px;
+        right: 10px;
+        bottom: 70px;
+        width: auto;
+        height: min(78vh, 640px);
+        border-radius: 16px 16px 0 0;
+      }
+
+      .chat-toggle {
+        right: 14px;
+        bottom: 14px;
+      }
     }
   </style>
 </head>
@@ -892,12 +963,7 @@
     </header>
 
     <main class="main">
-      <section class="chat-panel" aria-label="추천 챗봇">
-        <div class="chat-header">
-          <div class="ai-state"><span class="ai-dot"></span><span>추천 조건을 전송하면 후보가 생성됩니다</span></div>
-          <span class="hint">좌석별 가격 확인 후 예산·캘린더 반영</span>
-        </div>
-
+      <section class="chat-panel" aria-label="AI 오마카세 플래너">
         <section class="omakase-panel" aria-label="AI 오마카세 연간 관람 플래너">
           <div class="omakase-head">
             <div>
@@ -963,21 +1029,6 @@
           </div>
           <div class="omakase-result" id="omakaseResult"></div>
         </section>
-
-        <div class="messages" id="messages"></div>
-
-        <div class="input-zone">
-          <div class="quick-chips">
-            <button class="chip" type="button" data-prompt="가을에 볼 만한 연극 추천해줘">가을 연극</button>
-            <button class="chip" type="button" data-prompt="5만원 이하로 볼 수 있는 전시 추천해줘">5만원 이하 전시</button>
-            <button class="chip" type="button" data-prompt="서울에서 하는 오페라 추천해줘">오페라</button>
-            <button class="chip" type="button" data-prompt="가을에 볼 수 있는 작품 나열해줘">가을 목록</button>
-          </div>
-          <form class="input-row" id="chatForm">
-            <input class="chat-input" id="chatInput" autocomplete="off" placeholder="예: 올해 가을, 서울에서 하는 연극 추천해줘" />
-            <button class="send-btn" type="submit" aria-label="전송">↑</button>
-          </form>
-        </div>
       </section>
 
       <aside class="cart-panel" aria-label="장바구니">
@@ -1006,6 +1057,27 @@
         </div>
       </aside>
     </main>
+
+    <section class="floating-chat" id="floatingChat" aria-label="AI 추천 상담">
+      <div class="chat-header">
+        <div class="ai-state"><span class="ai-dot"></span><span>AI 추천 상담</span></div>
+        <button class="chat-close" type="button" id="chatClose">접기</button>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="input-zone">
+        <div class="quick-chips">
+          <button class="chip" type="button" data-prompt="가을에 볼 만한 연극 추천해줘">가을 연극</button>
+          <button class="chip" type="button" data-prompt="5만원 이하로 볼 수 있는 전시 추천해줘">5만원 이하 전시</button>
+          <button class="chip" type="button" data-prompt="서울에서 하는 오페라 추천해줘">오페라</button>
+          <button class="chip" type="button" data-prompt="가을에 볼 수 있는 작품 나열해줘">가을 목록</button>
+        </div>
+        <form class="input-row" id="chatForm">
+          <input class="chat-input" id="chatInput" autocomplete="off" placeholder="예: 올해 가을, 서울에서 하는 연극 추천해줘" />
+          <button class="send-btn" type="submit" aria-label="전송">↑</button>
+        </form>
+      </div>
+    </section>
+    <button class="chat-toggle" type="button" id="chatToggle">AI 추천 상담 <span class="chat-badge">추천 도움</span></button>
   </div>
 
   <script src="./culture_db.js"></script>
@@ -1066,7 +1138,10 @@
       omakaseMood: document.querySelector("#omakaseMood"),
       omakaseAvoid: document.querySelector("#omakaseAvoid"),
       omakaseAvoidMonth: document.querySelector("#omakaseAvoidMonth"),
-      omakaseResult: document.querySelector("#omakaseResult")
+      omakaseResult: document.querySelector("#omakaseResult"),
+      floatingChat: document.querySelector("#floatingChat"),
+      chatToggle: document.querySelector("#chatToggle"),
+      chatClose: document.querySelector("#chatClose")
     };
 
     function emptyCriteria() {
@@ -1366,6 +1441,16 @@
       if (cards) node.querySelector(".bubble").insertAdjacentHTML("beforeend", cards);
       el.messages.appendChild(node);
       el.messages.scrollTop = el.messages.scrollHeight;
+    }
+
+    function setChatOpen(open) {
+      el.floatingChat.classList.toggle("open", open);
+      el.chatToggle.textContent = open ? "챗봇 접기" : "AI 추천 상담";
+      const badge = document.createElement("span");
+      badge.className = "chat-badge";
+      badge.textContent = open ? "열림" : "추천 도움";
+      el.chatToggle.appendChild(badge);
+      if (open) setTimeout(() => el.input.focus(), 50);
     }
 
     function isAffirmative(text) {
@@ -1980,6 +2065,12 @@
     document.querySelectorAll("[data-prompt]").forEach((button) => {
       button.addEventListener("click", () => submitPrompt(button.dataset.prompt));
     });
+
+    el.chatToggle.addEventListener("click", () => {
+      setChatOpen(!el.floatingChat.classList.contains("open"));
+    });
+
+    el.chatClose.addEventListener("click", () => setChatOpen(false));
 
     el.omakaseButton.addEventListener("click", makeOmakasePlan);
 
