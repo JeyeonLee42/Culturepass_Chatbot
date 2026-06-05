@@ -6,17 +6,25 @@
   <title>청년문화예술패스 추천 챗봇 MVP</title>
   <style>
     :root {
-      --bg: #f5f6f8;
-      --panel: #ffffff;
-      --ink: #1b232c;
-      --muted: #637181;
-      --line: #d8dee7;
-      --brand: #0f766e;
-      --brand-dark: #0a5d57;
-      --accent: #b85233;
-      --soft: #e8f3f1;
-      --soft-2: #fff5e8;
-      --shadow: 0 12px 28px rgba(18, 28, 38, 0.08);
+      --purple: #534ab7;
+      --purple-dark: #3c3489;
+      --purple-light: #eeedfe;
+      --teal: #1d9e75;
+      --teal-light: #e1f5ee;
+      --gray-50: #f8f7fc;
+      --gray-100: #f1eff9;
+      --gray-200: #e2dff5;
+      --gray-400: #9994c4;
+      --gray-600: #5e5a8a;
+      --text-main: #1a1830;
+      --text-sub: #6b6894;
+      --border: #e2dff5;
+      --white: #ffffff;
+      --danger: #d94b3d;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 3px rgba(83, 74, 183, 0.08);
+      --shadow-md: 0 4px 16px rgba(83, 74, 183, 0.12);
     }
 
     * {
@@ -25,11 +33,11 @@
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.45;
+      height: 100vh;
       overflow: hidden;
+      background: var(--gray-50);
+      color: var(--text-main);
+      font-family: "Pretendard", "Segoe UI", system-ui, -apple-system, sans-serif;
     }
 
     button,
@@ -43,1541 +51,2009 @@
 
     .app {
       height: 100vh;
-      padding: 22px;
+      max-width: 1220px;
+      margin: 0 auto;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 14px;
-      overflow: hidden;
+      grid-template-rows: 60px minmax(0, 1fr);
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
-      gap: 18px;
-      align-items: end;
-      flex-wrap: wrap;
+      align-items: center;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
     }
 
-    .title {
-      display: grid;
-      gap: 5px;
-      min-width: min(100%, 420px);
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin: 0;
-    }
-
-    h1 {
-      font-size: 25px;
-      line-height: 1.2;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .stats {
+    .brand {
       display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      color: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
       gap: 10px;
       flex-wrap: wrap;
     }
 
-    .stat {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 12px;
-      color: var(--muted);
-      font-size: 13px;
-      box-shadow: 0 4px 14px rgba(18, 28, 38, 0.04);
-    }
-
-    .stat strong {
-      color: var(--ink);
-    }
-
-    .quick {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .chip {
-      border: 1px solid #aab6c4;
+    .status-pill,
+    .budget-pill {
       border-radius: 999px;
-      color: #14212d;
-      background: #ffffff;
-      padding: 8px 12px;
+      padding: 6px 12px;
       font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 2px 8px rgba(18, 28, 38, 0.05);
+      font-weight: 650;
     }
 
-    .chip:hover {
-      border-color: var(--brand);
-      background: var(--soft);
-      color: var(--brand-dark);
+    .status-pill {
+      background: var(--teal-light);
+      color: var(--teal);
     }
 
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(330px, 400px);
-      gap: 16px;
+    .budget-pill {
+      background: var(--purple-light);
+      color: var(--purple-dark);
+    }
+
+    .main {
       min-height: 0;
-      overflow: hidden;
-    }
-
-    .chat,
-    .side-panel,
-    .cart {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      min-height: 0;
-    }
-
-    .chat {
       display: grid;
-      grid-template-rows: auto minmax(220px, 1fr) auto;
-      overflow: hidden;
+      grid-template-columns: minmax(0, 1fr) 310px;
     }
 
-    .chat-head {
-      border-bottom: 1px solid var(--line);
-      padding: 14px 16px;
+    .chat-panel,
+    .cart-panel {
+      min-height: 0;
+      display: grid;
+      background: var(--white);
+    }
+
+    .chat-panel {
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      border-right: 1px solid var(--border);
+    }
+
+    .chat-header {
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
       display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      background: #fbfcfd;
+      color: var(--text-sub);
+      font-size: 13px;
     }
 
-    .chat-head h2,
-    .side-panel h2,
-    .cart h2 {
-      font-size: 17px;
-      letter-spacing: 0;
+    .ai-state {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .ai-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
     }
 
     .hint {
-      color: var(--muted);
-      font-size: 13px;
+      color: var(--gray-600);
     }
 
     .messages {
-      padding: 18px;
-      overflow: auto;
-      display: grid;
-      align-content: start;
-      gap: 14px;
       min-height: 0;
+      overflow: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: linear-gradient(180deg, #fff, var(--gray-50));
     }
 
-    .message {
-      max-width: 760px;
-      border-radius: 8px;
-      padding: 13px 14px;
+    .msg {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .msg.user {
+      justify-content: flex-end;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      color: white;
+      font-size: 14px;
+    }
+
+    .bubble {
+      max-width: 680px;
+      border-radius: var(--radius-lg);
+      padding: 13px 15px;
+      font-size: 14px;
+      line-height: 1.65;
       white-space: pre-wrap;
     }
 
-    .bot {
-      background: #edf4f3;
-      border: 1px solid #d0e7e4;
+    .bubble.bot {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
     }
 
-    .user {
-      justify-self: end;
-      background: #1f2b36;
-      color: #ffffff;
-    }
-
-    .composer {
-      border-top: 1px solid var(--line);
-      padding: 14px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      background: #fbfcfd;
-    }
-
-    .composer input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 12px 13px;
-      color: var(--ink);
-      background: #ffffff;
-      outline: none;
-    }
-
-    .composer input:focus {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
-    }
-
-    .primary,
-    .secondary,
-    .ghost {
-      border-radius: 6px;
-      padding: 10px 12px;
-      font-weight: 750;
-    }
-
-    .primary {
-      border: 0;
-      background: var(--brand);
+    .bubble.user {
       color: white;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      border-top-right-radius: 4px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .primary:hover {
-      background: var(--brand-dark);
-    }
-
-    .secondary {
-      border: 1px solid var(--brand);
-      background: #ffffff;
-      color: var(--brand-dark);
-    }
-
-    .secondary:hover {
-      background: var(--soft);
-    }
-
-    .ghost {
-      border: 1px solid var(--line);
-      background: #ffffff;
-      color: var(--muted);
-    }
-
-    .ghost:hover {
-      color: var(--ink);
-      border-color: #aab6c4;
-    }
-
-    .right-column {
+    .recommendations {
       display: grid;
-      grid-template-rows: minmax(390px, 1.2fr) minmax(210px, 0.8fr);
-      gap: 16px;
-      min-height: 0;
-      overflow: hidden;
+      gap: 10px;
+      margin-top: 12px;
     }
 
-    .side-panel,
-    .cart {
+    .rec-card {
+      border: 1px solid var(--border);
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 12px;
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      overflow: hidden;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .panel-head {
-      padding: 15px 16px 12px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .panel-title {
-      display: grid;
-      gap: 3px;
-    }
-
-    .pager {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .pager button {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #ffffff;
-      color: var(--ink);
-      font-weight: 800;
-    }
-
-    .pager button:hover:not(:disabled) {
-      border-color: var(--brand);
-      color: var(--brand-dark);
-      background: var(--soft);
-    }
-
-    .pager button:disabled {
-      cursor: default;
-      color: #b4bec9;
-      background: #f4f6f8;
-    }
-
-    .page-indicator {
-      min-width: 44px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 750;
-    }
-
-    .refresh-results {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #ffffff;
-      color: var(--ink);
-      font-weight: 850;
-    }
-
-    .refresh-results:hover {
-      border-color: var(--brand);
-      color: var(--brand-dark);
-      background: var(--soft);
-    }
-
-    .card-list,
-    .cart-list {
-      padding: 14px;
-      overflow: auto;
-      display: grid;
-      align-content: start;
-      gap: 12px;
-      min-height: 0;
-    }
-
-    .card,
-    .cart-item {
-      border: 1px solid var(--line);
+    .rec-poster {
+      width: 76px;
+      aspect-ratio: 3 / 4;
       border-radius: 8px;
-      padding: 13px;
+      object-fit: cover;
+      background: var(--gray-100);
+      border: 1px solid var(--border);
+      grid-row: span 5;
+    }
+
+    .rec-poster.placeholder {
       display: grid;
-      gap: 9px;
-      background: #ffffff;
+      place-items: center;
+      color: var(--text-sub);
+      font-size: 11px;
+      text-align: center;
+      padding: 8px;
     }
 
-    .cart-item {
-      position: relative;
-      padding-right: 46px;
+    .rec-card h3 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: -0.1px;
     }
 
-    .card h3,
-    .cart-item h3 {
-      font-size: 15px;
-      line-height: 1.35;
-      letter-spacing: 0;
+    .rec-meta,
+    .rec-reason {
+      color: var(--text-sub);
+      font-size: 12px;
     }
 
-    .meta {
-      display: grid;
-      gap: 4px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .badges {
+    .tags {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
     }
 
-    .badge {
+    .tag {
       border-radius: 999px;
-      padding: 4px 8px;
-      background: var(--soft);
-      color: var(--brand-dark);
-      font-size: 12px;
-      font-weight: 750;
+      padding: 3px 8px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      font-size: 11px;
+      font-weight: 700;
     }
 
-    .badge.hot {
-      background: var(--soft-2);
-      color: #895100;
+    .tag.teal {
+      background: var(--teal-light);
+      color: var(--teal);
+    }
+
+    .tag.warn {
+      background: #fff3d6;
+      color: #936018;
+    }
+
+    .tag.muted {
+      background: var(--gray-100);
+      color: var(--text-sub);
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
     }
 
     .price {
+      color: var(--purple);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .add-btn,
+    .ghost-btn,
+    .send-btn,
+    .start-btn {
+      border: 0;
+      border-radius: 999px;
+      font-weight: 750;
+    }
+
+    .add-btn {
+      padding: 7px 12px;
+      color: var(--purple);
+      background: var(--purple-light);
+    }
+
+    .add-btn.added {
+      color: var(--teal);
+      background: var(--teal-light);
+    }
+
+    .input-zone {
+      border-top: 1px solid var(--border);
+      padding: 12px 18px 14px;
+      display: grid;
+      gap: 9px;
+      background: var(--white);
+    }
+
+    .quick-chips {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text-sub);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .chip:hover {
+      color: var(--purple);
+      background: var(--purple-light);
+      border-color: var(--purple);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 42px;
+      gap: 8px;
+    }
+
+    .chat-input {
+      height: 42px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      padding: 0 14px;
+      outline: 0;
+      color: var(--text-main);
+      background: var(--gray-50);
+    }
+
+    .chat-input:focus {
+      border-color: var(--purple);
+      background: var(--white);
+    }
+
+    .send-btn {
+      height: 42px;
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      font-size: 17px;
+    }
+
+    .cart-panel {
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    .cart-header,
+    .budget-summary {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cart-header h2 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
+
+    .cart-header p,
+    .empty-cart {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .cart-list {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px 18px;
+      display: grid;
+      align-content: start;
+      gap: 9px;
+    }
+
+    .cart-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      background: var(--gray-50);
+      display: grid;
+      gap: 6px;
+    }
+
+    .cart-top {
       display: flex;
       justify-content: space-between;
       gap: 8px;
+    }
+
+    .cart-name {
       font-size: 13px;
-      border-top: 1px solid var(--line);
-      padding-top: 9px;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
-    .price strong,
-    .cart-total strong {
-      color: var(--accent);
+    .remove-btn {
+      border: 0;
+      background: transparent;
+      color: var(--gray-400);
+      font-size: 16px;
+      line-height: 1;
     }
 
-    .card-actions,
-    .cart-actions {
+    .remove-btn:hover {
+      color: var(--danger);
+    }
+
+    .cart-price {
+      color: var(--purple);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .cart-meta {
+      color: var(--text-sub);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .cart-actions,
+    .scheduler-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .seat-select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--white);
+      color: var(--text-main);
+      padding: 7px 8px;
+      font-size: 12px;
+      outline: 0;
+    }
+
+    .mini-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--white);
+      color: var(--purple);
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 750;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .mini-btn:hover {
+      background: var(--purple-light);
+      border-color: var(--purple);
+    }
+
+    .scheduler-panel {
+      border-top: 1px solid var(--border);
+      padding: 14px 18px;
+      display: grid;
+      gap: 10px;
+      background: var(--white);
+    }
+
+    .omakase-panel {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: grid;
+      gap: 12px;
+      background: #fbfafc;
+    }
+
+    .omakase-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .omakase-head h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .omakase-head p {
+      margin: 3px 0 0;
+      color: var(--text-sub);
+      font-size: 12px;
+    }
+
+    .omakase-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .omakase-field {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .omakase-field label {
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .omakase-field select,
+    .omakase-field input {
+      min-width: 0;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--text-main);
+      padding: 0 9px;
+      font-size: 12px;
+      outline: 0;
+    }
+
+    .omakase-checks {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .omakase-checks label {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: var(--white);
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .omakase-checks input {
+      accent-color: var(--purple);
+      margin-right: 4px;
+    }
+
+    .omakase-result {
+      display: grid;
+      gap: 8px;
+    }
+
+    .plan-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--white);
+      padding: 11px 12px;
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plan-month {
+      border-radius: 8px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 850;
+      min-height: 76px;
+    }
+
+    .plan-body {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .plan-body strong {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .plan-meta,
+    .plan-reason {
+      color: var(--text-sub);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .plan-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .scheduler-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .scheduler-title h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .schedule-list {
+      display: grid;
+      gap: 8px;
+      max-height: 170px;
+      overflow: auto;
+    }
+
+    .schedule-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 10px;
+      background: var(--gray-50);
+      display: grid;
+      gap: 5px;
+    }
+
+    .schedule-item strong {
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .schedule-item span {
+      color: var(--text-sub);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .schedule-item a {
+      color: var(--purple);
+      font-size: 11px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+
+    .budget-summary {
+      border-top: 1px solid var(--border);
+      border-bottom: 0;
+      background: var(--gray-50);
+    }
+
+    .budget-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .budget-line strong {
+      color: var(--purple);
+    }
+
+    .progress-track {
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--purple), var(--purple-dark));
+      transition: width 0.25s ease;
+    }
+
+    .rule-note {
+      color: var(--text-sub);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(26, 24, 48, 0.55);
+      z-index: 20;
+    }
+
+    .modal {
+      width: min(440px, 100%);
+      background: var(--white);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(83, 74, 183, 0.22);
+    }
+
+    .modal h1 {
+      margin: 0 0 6px;
+      font-size: 23px;
+    }
+
+    .modal p {
+      margin: 0 0 22px;
+      color: var(--text-sub);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .field {
+      margin-bottom: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 86px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slider-row input {
+      accent-color: var(--purple);
+    }
+
+    .slider-value {
+      color: var(--purple);
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .button-grid {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
 
-    .remove-item {
-      position: absolute;
-      top: 9px;
-      right: 9px;
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #ffffff;
-      color: var(--muted);
-      font-weight: 850;
-      line-height: 1;
-    }
-
-    .remove-item:hover {
-      border-color: #c85d40;
-      color: #9c3d28;
-      background: #fff1ed;
-    }
-
-    a {
-      color: var(--brand-dark);
-      font-weight: 750;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .empty {
-      color: var(--muted);
-      font-size: 14px;
-      padding: 6px 2px;
-    }
-
-    .cart-total {
-      border-top: 1px solid var(--line);
-      padding: 12px 14px;
-      display: grid;
-      gap: 5px;
-      color: var(--muted);
+    .choice {
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--text-sub);
+      border-radius: 999px;
+      padding: 7px 13px;
       font-size: 13px;
-      background: #fbfcfd;
+      font-weight: 700;
     }
 
-    @media (max-width: 1040px) {
-      .workspace {
-        grid-template-columns: 1fr;
-      }
-
-      .right-column {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: minmax(360px, 1fr);
-      }
+    .choice.selected {
+      color: var(--purple);
+      background: var(--purple-light);
+      border-color: var(--purple);
     }
 
-    @media (max-width: 720px) {
-      .app {
-        padding: 14px;
-        overflow: auto;
-      }
+    .start-btn {
+      width: 100%;
+      padding: 13px;
+      color: white;
+      background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+      border-radius: var(--radius-md);
+      font-size: 15px;
+    }
 
+    @media (max-width: 820px) {
       body {
         overflow: auto;
       }
 
-      .right-column,
-      .composer {
+      .app {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .main {
         grid-template-columns: 1fr;
       }
 
-      .stats {
-        width: 100%;
+      .cart-panel {
+        min-height: 360px;
+        border-top: 1px solid var(--border);
       }
 
-      .stat {
-        flex: 1 1 140px;
+      .topbar {
+        height: auto;
+        min-height: 60px;
+        align-items: flex-start;
+        padding: 12px 14px;
+      }
+
+      .topbar-right {
+        justify-content: flex-end;
+      }
+
+      .omakase-form {
+        grid-template-columns: 1fr;
+      }
+
+      .omakase-head {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="title">
-        <h1>청년문화예술패스 추천 챗봇</h1>
-        <p class="subtitle">간이 DB로 추천 품질을 먼저 테스트하는 MVP입니다. 채팅창에 지역, 장르, 예산, 취향을 자연스럽게 입력해보세요.</p>
-      </div>
-      <div class="stats" aria-label="서비스 상태">
-        <div class="stat"><strong id="dbCount">0</strong>개 샘플 작품</div>
-        <div class="stat">기본 예산 <strong>200,000원</strong></div>
-        <div class="stat">장바구니 <strong id="cartCount">0</strong>개</div>
-      </div>
-    </header>
-
-    <section class="workspace">
-      <section class="chat" aria-label="챗봇 대화">
-        <div class="chat-head">
-          <h2>채팅 내역</h2>
-          <div class="quick" aria-label="빠른 입력">
-            <button class="chip" data-prompt="서울에서 가볍게 볼 수 있는 연극 추천해줘">서울 연극</button>
-            <button class="chip" data-prompt="20만원 안에서 뮤지컬이랑 전시를 같이 보고 싶어">뮤지컬 + 전시</button>
-            <button class="chip" data-prompt="클래식 입문자에게 좋은 공연 알려줘">클래식 입문</button>
-            <button class="chip" data-prompt="데이트로 보기 좋은 작품 추천해줘">데이트</button>
-          </div>
+  <div class="overlay" id="overlay">
+    <section class="modal" aria-label="초기 설정">
+      <h1>청년문화예술패스 추천 챗봇</h1>
+      <p>잔여 지원금과 선호 작품 종류를 알려주면, 서울 공연 DB 기반으로 작품 후보와 연간 관람 일정을 추천합니다.</p>
+      <div class="field">
+        <label for="budgetSlider">잔여 지원금</label>
+        <div class="slider-row">
+          <input id="budgetSlider" type="range" min="50000" max="200000" step="10000" value="200000" />
+          <span class="slider-value" id="budgetValue">200,000원</span>
         </div>
-        <div class="messages" id="messages"></div>
-        <form class="composer" id="chatForm">
-          <input id="chatInput" placeholder="예: 서울에서 6월에 볼 연극이나 전시 추천해줘. 예산은 20만원이야." autocomplete="off" />
-          <button class="primary" type="submit">전송</button>
-        </form>
-      </section>
-
-      <div class="right-column">
-        <section class="side-panel" aria-label="추천 후보">
-          <div class="panel-head">
-            <div class="panel-title">
-              <h2>추천 후보</h2>
-              <span class="hint" id="resultHint">최근 추천 기준</span>
-            </div>
-            <div class="pager" aria-label="추천 후보 페이지">
-              <button class="refresh-results" id="refreshResults" type="button" aria-label="추천 후보 새로고침">↻</button>
-              <button id="prevPage" type="button" aria-label="이전 추천 후보">‹</button>
-              <span class="page-indicator" id="pageIndicator">1 / 1</span>
-              <button id="nextPage" type="button" aria-label="다음 추천 후보">›</button>
-            </div>
-          </div>
-          <div class="card-list" id="cards"></div>
-        </section>
-
-        <section class="cart" aria-label="장바구니">
-          <div class="panel-head">
-            <h2>장바구니</h2>
-            <button class="ghost" id="clearCart" type="button">비우기</button>
-          </div>
-          <div class="cart-list" id="cartItems"></div>
-          <div class="cart-total">
-            <span>테스트 예상 합계 <strong id="cartTotal">0원</strong></span>
-            <span>기본 예산 기준 남은 금액 <strong id="cartRemain">200,000원</strong></span>
-          </div>
-        </section>
       </div>
+      <div class="field">
+        <label>선호 작품 종류</label>
+        <div class="button-grid" id="genreChoices">
+          <button class="choice selected" type="button" data-genre="뮤지컬">뮤지컬</button>
+          <button class="choice" type="button" data-genre="연극">연극</button>
+          <button class="choice selected" type="button" data-genre="전시">전시</button>
+          <button class="choice" type="button" data-genre="클래식/오페라">클래식/오페라</button>
+          <button class="choice" type="button" data-genre="콘서트">콘서트</button>
+          <button class="choice" type="button" data-genre="국악">국악</button>
+          <button class="choice" type="button" data-genre="발레/무용">발레/무용</button>
+        </div>
+      </div>
+      <button class="start-btn" type="button" id="startButton">시작하기</button>
     </section>
   </div>
 
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">🎭</span>
+        <span>청년문화패스 AI 플래너</span>
+      </div>
+      <div class="topbar-right">
+        <span class="status-pill" id="conditionStatus">초기 설정 대기</span>
+        <span class="budget-pill">잔여 <strong id="remainingBudget">200,000원</strong></span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="chat-panel" aria-label="추천 챗봇">
+        <div class="chat-header">
+          <div class="ai-state"><span class="ai-dot"></span><span>추천 조건을 전송하면 후보가 생성됩니다</span></div>
+          <span class="hint">좌석별 가격 확인 후 예산·캘린더 반영</span>
+        </div>
+
+        <section class="omakase-panel" aria-label="AI 오마카세 연간 관람 플래너">
+          <div class="omakase-head">
+            <div>
+              <h2>AI 오마카세 연간 관람 플래너</h2>
+              <p>현재 날짜부터 연말까지 남은 지원금 안에서 관람 계획을 먼저 제안합니다.</p>
+            </div>
+            <button class="mini-btn" type="button" id="omakaseButton">AI 오마카세 플랜 만들기</button>
+          </div>
+          <div class="omakase-form">
+            <div class="omakase-field">
+              <label for="omakaseBudget">남은 지원금</label>
+              <input id="omakaseBudget" type="number" min="10000" max="200000" step="10000" value="200000" />
+            </div>
+            <div class="omakase-field">
+              <label for="omakasePersona">관람 성향</label>
+              <select id="omakasePersona">
+                <option value="intro">입문형</option>
+                <option value="variety">다양하게 경험형</option>
+                <option value="focus">취향 집중형</option>
+                <option value="value">가성비 중시형</option>
+              </select>
+            </div>
+            <div class="omakase-field">
+              <label for="omakaseFrequency">관람 빈도</label>
+              <select id="omakaseFrequency">
+                <option value="auto">알아서 추천</option>
+                <option value="monthly">월 1회</option>
+                <option value="quarterly">분기별 1회</option>
+                <option value="vacation">방학 집중형</option>
+              </select>
+            </div>
+            <div class="omakase-field">
+              <label for="omakaseMood">원하는 분위기</label>
+              <select id="omakaseMood">
+                <option value="">선택 안 함</option>
+                <option value="light">가볍게 즐기고 싶음</option>
+                <option value="moving">감동적인 작품</option>
+                <option value="tense">긴장감 있는 작품</option>
+                <option value="artistic">예술적/실험적인 작품</option>
+                <option value="easy">입문자에게 쉬운 작품</option>
+              </select>
+            </div>
+            <div class="omakase-field">
+              <label for="omakaseAvoid">피하고 싶은 시기</label>
+              <select id="omakaseAvoid">
+                <option value="">없음</option>
+                <option value="exam">시험기간</option>
+                <option value="month">특정 월</option>
+              </select>
+            </div>
+            <div class="omakase-field">
+              <label for="omakaseAvoidMonth">특정 월</label>
+              <input id="omakaseAvoidMonth" type="text" placeholder="예: 10월" />
+            </div>
+            <div class="omakase-checks" aria-label="선호 분야">
+              <label><input type="checkbox" name="omakaseGenre" value="연극" />연극</label>
+              <label><input type="checkbox" name="omakaseGenre" value="뮤지컬" />뮤지컬</label>
+              <label><input type="checkbox" name="omakaseGenre" value="전시" />전시</label>
+              <label><input type="checkbox" name="omakaseGenre" value="음악" />음악</label>
+              <label><input type="checkbox" name="omakaseGenre" value="무용" />무용</label>
+              <label><input type="checkbox" name="omakaseGenre" value="기타" />기타</label>
+            </div>
+          </div>
+          <div class="omakase-result" id="omakaseResult"></div>
+        </section>
+
+        <div class="messages" id="messages"></div>
+
+        <div class="input-zone">
+          <div class="quick-chips">
+            <button class="chip" type="button" data-prompt="가을에 볼 만한 연극 추천해줘">가을 연극</button>
+            <button class="chip" type="button" data-prompt="5만원 이하로 볼 수 있는 전시 추천해줘">5만원 이하 전시</button>
+            <button class="chip" type="button" data-prompt="서울에서 하는 오페라 추천해줘">오페라</button>
+            <button class="chip" type="button" data-prompt="가을에 볼 수 있는 작품 나열해줘">가을 목록</button>
+          </div>
+          <form class="input-row" id="chatForm">
+            <input class="chat-input" id="chatInput" autocomplete="off" placeholder="예: 올해 가을, 서울에서 하는 연극 추천해줘" />
+            <button class="send-btn" type="submit" aria-label="전송">↑</button>
+          </form>
+        </div>
+      </section>
+
+      <aside class="cart-panel" aria-label="장바구니">
+        <div class="cart-header">
+          <h2>🛒 장바구니</h2>
+          <p id="cartSubText">추천 카드에서 작품을 담아 예산을 비교해보세요.</p>
+        </div>
+        <div class="cart-list" id="cartList"></div>
+        <div class="scheduler-panel" aria-label="연간 일정 스케줄러">
+          <div class="scheduler-title">
+            <h3>📅 연간 스케줄러</h3>
+          </div>
+          <div class="scheduler-actions">
+            <button class="mini-btn" type="button" id="autoScheduleButton">장바구니 자동 배치</button>
+            <button class="mini-btn" type="button" id="exportIcsButton">ICS 저장</button>
+          </div>
+          <div class="schedule-list" id="scheduleList"></div>
+        </div>
+        <div class="budget-summary">
+          <div class="budget-line">
+            <span>사용 금액</span>
+            <strong id="usedBudget">0원</strong>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="rule-note" id="ruleNote">패스 예산 내 추천 여부를 테스트하는 MVP입니다.</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="./culture_db.js"></script>
   <script>
-    const today = new Date("2026-05-26T00:00:00+09:00");
-    const defaultBudget = 200000;
-
     const sampleDb = [
-      {
-        id: "musical-beethoven",
-        title: "뮤지컬 〈베토벤〉",
-        genre: "뮤지컬",
-        region: "서울",
-        area: "광화문",
-        venue: "세종문화회관 대극장",
-        startDate: "2026-06-18",
-        endDate: "2026-06-19",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 0,
-        estimatedPrice: 90000,
-        mood: ["웅장한", "유명작", "데이트", "초심자", "진지한"],
-        cast: ["카이", "박은태"],
-        rating: 4.5,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "play-flower-star",
-        title: "연극 〈꽃, 별이 지나〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "NOL 서경스퀘어 스콘 1관",
-        startDate: "2026-06-16",
-        endDate: "2026-08-23",
-        benefit: "청소년 할인 30%",
-        discountRate: 30,
-        estimatedPrice: 42000,
-        mood: ["감성적인", "데이트", "가벼운", "혼자", "따뜻한"],
-        cast: ["김민주", "이재균"],
-        rating: 4.4,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "exhibit-asiaf",
-        title: "2026 아시아프 100",
-        genre: "전시",
-        region: "서울",
-        area: "광화문",
-        venue: "아트조선스페이스",
-        startDate: "2026-07-01",
-        endDate: "2026-08-05",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 0,
-        estimatedPrice: 15000,
-        mood: ["전시", "혼자", "가성비", "데이트"],
-        cast: [],
-        rating: 4.1,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "play-restaurant",
-        title: "다이닝 씨어터 〈연극 식당〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "남극장",
-        startDate: "2026-06-03",
-        endDate: "2026-08-17",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 0,
-        estimatedPrice: 45000,
-        mood: ["이색적인", "데이트", "가벼운", "코믹", "재밌는"],
-        cast: ["정상훈", "정문성"],
-        rating: 4.3,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "classic-beethoven7",
-        title: "국립심포니오케스트라 〈베토벤, 교향곡 7번〉",
-        genre: "클래식/오페라",
-        region: "서울",
-        area: "서초",
-        venue: "예술의전당 콘서트홀",
-        startDate: "2026-07-04",
-        endDate: "2026-07-04",
-        benefit: "청년문화예술패스 40%",
-        discountRate: 40,
-        estimatedPrice: 48000,
-        mood: ["입문", "웅장한", "유명곡", "혼자"],
-        cast: [],
-        rating: 4.6,
-        seller: "YES24 티켓",
-        url: "https://ticket.yes24.com"
-      },
-      {
-        id: "play-memory",
-        title: "공포 연극 〈조각 : 사라진 기억〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "댕로홀",
-        startDate: "2015-06-29",
-        endDate: "2026-12-31",
-        benefit: "청년문화예술패스 75%",
-        discountRate: 75,
-        estimatedPrice: 15000,
-        mood: ["공포", "가성비", "친구", "대학로"],
-        cast: ["김준형", "이지현"],
-        rating: 4.0,
-        seller: "티켓링크",
-        url: "https://www.ticketlink.co.kr"
-      },
-      {
-        id: "play-shearmadness",
-        title: "연극 〈쉬어매드니스〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "콘텐츠박스",
-        startDate: "2026-06-01",
-        endDate: "2026-12-31",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 20,
-        estimatedPrice: 38000,
-        mood: ["코믹", "재밌는", "추리", "참여형", "가벼운", "친구", "데이트"],
-        cast: ["서현철", "김늘메"],
-        rating: 4.6,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "play-rooftop-cat",
-        title: "연극 〈옥탑방 고양이〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "틴틴홀",
-        startDate: "2026-03-01",
-        endDate: "2026-11-30",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 30,
-        estimatedPrice: 32000,
-        mood: ["코믹", "로맨틱", "재밌는", "가벼운", "데이트", "대학로"],
-        cast: ["김민규", "박소영"],
-        rating: 4.5,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "play-old-thieves",
-        title: "코미디 연극 〈늘근도둑 이야기〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "아트포레스트",
-        startDate: "2026-09-05",
-        endDate: "2026-10-25",
-        benefit: "청년문화예술패스 30%",
-        discountRate: 30,
-        estimatedPrice: 35000,
-        mood: ["코믹", "재밌는", "풍자", "가벼운", "친구"],
-        cast: ["노진원", "유일한"],
-        rating: 4.2,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "concert-ghibli-paju",
-        title: "지브리와 사랑에 빠지다 : 지브리 영화음악 콘서트 2026 - 파주",
-        genre: "콘서트",
-        region: "경기·인천·강원",
-        area: "파주",
-        venue: "파주 솔가람아트홀",
-        startDate: "2026-06-28",
-        endDate: "2026-06-28",
-        benefit: "청년문화예술패스 20%",
-        discountRate: 20,
-        estimatedPrice: 44000,
-        mood: ["가벼운", "영화음악", "데이트", "초심자"],
-        cast: [],
-        rating: 4.4,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "exhibit-postimpression",
-        title: "후기 인상주의 거장들 - 과천",
-        genre: "전시",
-        region: "경기·인천·강원",
-        area: "과천",
-        venue: "과천시민회관 갤러리 마루, 아라",
-        startDate: "2026-04-06",
-        endDate: "2026-06-05",
-        benefit: "청년문화예술패스 20%",
-        discountRate: 20,
-        estimatedPrice: 12000,
-        mood: ["전시", "가성비", "데이트", "혼자"],
-        cast: [],
-        rating: 4.1,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "musical-kimjongwook",
-        title: "뮤지컬 〈김종욱 찾기〉 - 아산",
-        genre: "뮤지컬",
-        region: "대전·충청",
-        area: "아산",
-        venue: "아산시 평생학습관 아산아트홀",
-        startDate: "2026-06-20",
-        endDate: "2026-06-21",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 0,
-        estimatedPrice: 65000,
-        mood: ["로맨틱", "데이트", "가벼운", "유명작"],
-        cast: ["정욱진", "김지현"],
-        rating: 4.4,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "play-one-span",
-        title: "연극 〈한뼘사이〉",
-        genre: "연극",
-        region: "서울",
-        area: "대학로",
-        venue: "라온아트홀",
-        startDate: "2026-07-01",
-        endDate: "2026-12-31",
-        benefit: "청년문화예술패스 대상",
-        discountRate: 25,
-        estimatedPrice: 30000,
-        mood: ["로맨틱", "코믹", "재밌는", "가벼운", "데이트", "대학로"],
-        cast: ["윤석현", "이서영"],
-        rating: 4.3,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "musical-laundry",
-        title: "뮤지컬 〈빨래〉",
-        genre: "뮤지컬",
-        region: "서울",
-        area: "대학로",
-        venue: "유니플렉스",
-        startDate: "2026-09-03",
-        endDate: "2026-11-15",
-        benefit: "청년문화예술패스 20%",
-        discountRate: 20,
-        estimatedPrice: 50000,
-        mood: ["로맨틱", "따뜻한", "감성적인", "유명작", "가을"],
-        cast: ["홍광호", "김수하"],
-        rating: 4.7,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "gukak-jeonju",
-        title: "2026년 전주브랜드공연 마당창극 〈별향단젼이라〉",
-        genre: "국악",
-        region: "광주·전라",
-        area: "전주",
-        venue: "전주한벽문화관 마당창극 야외공연장",
-        startDate: "2026-05-23",
-        endDate: "2026-10-17",
-        benefit: "청년문화예술패스 20%",
-        discountRate: 20,
-        estimatedPrice: 24000,
-        mood: ["전통", "야외", "지역색", "가성비"],
-        cast: [],
-        rating: 4.0,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "classic-daegu-four-seasons",
-        title: "신지아 & 디토 체임버 오케스트라 : 두 번의 사계 - 대구",
-        genre: "클래식/오페라",
-        region: "대구·경북",
-        area: "대구",
-        venue: "대구문화예술회관 팔공홀",
-        startDate: "2026-06-10",
-        endDate: "2026-06-10",
-        benefit: "문화패스(24세 이하) 20%",
-        discountRate: 20,
-        estimatedPrice: 56000,
-        mood: ["입문", "바이올린", "유명곡", "데이트"],
-        cast: ["신지아"],
-        rating: 4.6,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      },
-      {
-        id: "concert-ghibli-jeju",
-        title: "지브리와 사랑에 빠지다 : 지브리 영화음악 콘서트 2026 - 제주 서귀포 앙코르",
-        genre: "콘서트",
-        region: "제주",
-        area: "서귀포",
-        venue: "서귀포예술의전당 대극장",
-        startDate: "2026-08-16",
-        endDate: "2026-08-16",
-        benefit: "청년문화예술패스 20%",
-        discountRate: 20,
-        estimatedPrice: 44000,
-        mood: ["가벼운", "영화음악", "데이트", "초심자"],
-        cast: [],
-        rating: 4.4,
-        seller: "NOL 티켓",
-        url: "https://tickets.interpark.com"
-      }
+      { id: "play-memory", title: "공포 연극 〈조각 : 사라진 기억〉", genre: "연극", region: "서울", venue: "댕로홀", startDate: "2015-06-29", endDate: "2026-12-31", benefit: "청년문화예술패스 75%", estimatedPrice: 15000, mood: ["공포", "가성비", "친구", "대학로"], cast: ["김준형", "이지현"], rating: 4.0, url: "https://www.ticketlink.co.kr" },
+      { id: "play-shearmadness", title: "연극 〈쉬어매드니스〉", genre: "연극", region: "서울", venue: "콘텐츠박스", startDate: "2026-06-01", endDate: "2026-12-31", benefit: "청년문화예술패스 대상", estimatedPrice: 38000, mood: ["코믹", "재밌는", "추리", "참여형", "가벼운"], cast: ["서현철", "김늘메"], rating: 4.6, url: "https://tickets.interpark.com" },
+      { id: "play-rooftop", title: "연극 〈옥탑방 고양이〉", genre: "연극", region: "서울", venue: "틴틴홀", startDate: "2026-03-01", endDate: "2026-11-30", benefit: "청년문화예술패스 대상", estimatedPrice: 32000, mood: ["코믹", "로맨틱", "재밌는", "데이트", "대학로"], cast: ["김민규", "박소영"], rating: 4.5, url: "https://tickets.interpark.com" },
+      { id: "play-thieves", title: "코미디 연극 〈늘근도둑 이야기〉", genre: "연극", region: "서울", venue: "아트포레스트", startDate: "2026-09-05", endDate: "2026-10-25", benefit: "청년문화예술패스 30%", estimatedPrice: 35000, mood: ["코믹", "재밌는", "풍자", "가벼운"], cast: ["노진원", "유일한"], rating: 4.2, url: "https://tickets.interpark.com" },
+      { id: "musical-laundry", title: "뮤지컬 〈빨래〉", genre: "뮤지컬", region: "서울", venue: "유니플렉스", startDate: "2026-09-03", endDate: "2026-11-15", benefit: "청년문화예술패스 20%", estimatedPrice: 50000, mood: ["로맨틱", "따뜻한", "감성적인", "유명작", "가을"], cast: ["홍광호", "김수하"], rating: 4.7, url: "https://tickets.interpark.com" },
+      { id: "musical-kim", title: "뮤지컬 〈김종욱 찾기〉 - 아산", genre: "뮤지컬", region: "대전·충청", venue: "아산아트홀", startDate: "2026-06-20", endDate: "2026-06-21", benefit: "청년문화예술패스 대상", estimatedPrice: 65000, mood: ["로맨틱", "데이트", "가벼운", "유명작"], cast: ["정욱진", "김지현"], rating: 4.4, url: "https://tickets.interpark.com" },
+      { id: "exhibit-asiaf", title: "2026 아시아프 100", genre: "전시", region: "서울", venue: "아트조선스페이스", startDate: "2026-07-01", endDate: "2026-08-05", benefit: "청년문화예술패스 대상", estimatedPrice: 15000, mood: ["전시", "혼자", "가성비", "데이트"], cast: [], rating: 4.1, url: "https://tickets.interpark.com" },
+      { id: "exhibit-post", title: "후기 인상주의 거장들 - 과천", genre: "전시", region: "경기·인천·강원", venue: "과천시민회관", startDate: "2026-04-06", endDate: "2026-06-05", benefit: "청년문화예술패스 20%", estimatedPrice: 12000, mood: ["전시", "가성비", "데이트"], cast: [], rating: 4.1, url: "https://tickets.interpark.com" },
+      { id: "classic-beethoven", title: "국립심포니오케스트라 〈베토벤 7번〉", genre: "클래식/오페라", region: "서울", venue: "예술의전당 콘서트홀", startDate: "2026-07-04", endDate: "2026-07-04", benefit: "청년문화예술패스 40%", estimatedPrice: 48000, mood: ["입문", "웅장한", "유명곡"], cast: [], rating: 4.6, url: "https://ticket.yes24.com" },
+      { id: "opera-pagliacci", title: "오페라 〈광대들〉", genre: "클래식/오페라", region: "서울", venue: "마포아트센터", startDate: "2026-06-19", endDate: "2026-06-21", benefit: "청년문화예술패스 30%", estimatedPrice: 63000, mood: ["오페라", "드라마틱", "도전"], cast: ["김민석"], rating: 4.2, url: "https://tickets.interpark.com" },
+      { id: "concert-ghibli", title: "지브리 영화음악 콘서트 2026 - 제주", genre: "콘서트", region: "제주", venue: "서귀포예술의전당", startDate: "2026-08-16", endDate: "2026-08-16", benefit: "청년문화예술패스 20%", estimatedPrice: 44000, mood: ["가벼운", "영화음악", "데이트", "초심자"], cast: [], rating: 4.4, url: "https://tickets.interpark.com" }
     ];
+    const cultureDb = Array.isArray(window.CULTURE_DB) && window.CULTURE_DB.length ? window.CULTURE_DB : [];
+    const TODAY = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-    const elements = {
-      messages: document.querySelector("#messages"),
-      cards: document.querySelector("#cards"),
-      chatForm: document.querySelector("#chatForm"),
-      chatInput: document.querySelector("#chatInput"),
-      dbCount: document.querySelector("#dbCount"),
-      cartCount: document.querySelector("#cartCount"),
-      cartItems: document.querySelector("#cartItems"),
-      cartTotal: document.querySelector("#cartTotal"),
-      cartRemain: document.querySelector("#cartRemain"),
-      clearCart: document.querySelector("#clearCart"),
-      resultHint: document.querySelector("#resultHint"),
-      refreshResults: document.querySelector("#refreshResults"),
-      prevPage: document.querySelector("#prevPage"),
-      nextPage: document.querySelector("#nextPage"),
-      pageIndicator: document.querySelector("#pageIndicator")
+    const state = {
+      budget: 200000,
+      used: 0,
+      cart: [],
+      selectedSeats: {},
+      schedule: [],
+      pendingScheduleId: "",
+      pendingReminderPromptId: "",
+      pendingReminderInputId: "",
+      pendingRelated: false,
+      relatedSeedId: "",
+      criteria: emptyCriteria(),
+      lastResults: []
     };
 
-    let cart = [];
-    let lastBudget = defaultBudget;
-    let lastCriteria = inferFromText("");
-    let lastShownIds = [];
-    let committedRecommendations = [];
-    let currentRecommendations = [];
-    let currentPage = 1;
-    const pageSize = 3;
+    const el = {
+      overlay: document.querySelector("#overlay"),
+      budgetSlider: document.querySelector("#budgetSlider"),
+      budgetValue: document.querySelector("#budgetValue"),
+      startButton: document.querySelector("#startButton"),
+      messages: document.querySelector("#messages"),
+      form: document.querySelector("#chatForm"),
+      input: document.querySelector("#chatInput"),
+      remainingBudget: document.querySelector("#remainingBudget"),
+      usedBudget: document.querySelector("#usedBudget"),
+      progressBar: document.querySelector("#progressBar"),
+      cartList: document.querySelector("#cartList"),
+      cartSubText: document.querySelector("#cartSubText"),
+      scheduleList: document.querySelector("#scheduleList"),
+      autoScheduleButton: document.querySelector("#autoScheduleButton"),
+      exportIcsButton: document.querySelector("#exportIcsButton"),
+      conditionStatus: document.querySelector("#conditionStatus"),
+      ruleNote: document.querySelector("#ruleNote"),
+      omakaseButton: document.querySelector("#omakaseButton"),
+      omakaseBudget: document.querySelector("#omakaseBudget"),
+      omakasePersona: document.querySelector("#omakasePersona"),
+      omakaseFrequency: document.querySelector("#omakaseFrequency"),
+      omakaseMood: document.querySelector("#omakaseMood"),
+      omakaseAvoid: document.querySelector("#omakaseAvoid"),
+      omakaseAvoidMonth: document.querySelector("#omakaseAvoidMonth"),
+      omakaseResult: document.querySelector("#omakaseResult")
+    };
 
-    elements.dbCount.textContent = sampleDb.length.toLocaleString("ko-KR");
+    function emptyCriteria() {
+      return { region: "서울", genres: [], styles: [], actors: [], budget: 200000, dateRange: "", intent: "recommend", excludeIds: [] };
+    }
 
     function formatWon(value) {
-      return `${Math.round(value).toLocaleString("ko-KR")}원`;
+      return `${Math.max(0, Math.round(value)).toLocaleString("ko-KR")}원`;
+    }
+
+    function getMinPrice(item) {
+      if (typeof item.minPrice === "number") return item.minPrice;
+      if (Array.isArray(item.priceTiers) && item.priceTiers.length) return Math.min(...item.priceTiers.map((tier) => tier.price));
+      if (typeof item.estimatedPrice === "number") return item.estimatedPrice;
+      return null;
+    }
+
+    function getSelectedSeat(item) {
+      return state.selectedSeats[item.id] || null;
+    }
+
+    function getSelectedPrice(item) {
+      return getSelectedSeat(item)?.price ?? getMinPrice(item) ?? 0;
+    }
+
+    function hasSinglePrice(item) {
+      return Array.isArray(item.priceTiers) && item.priceTiers.length === 1;
+    }
+
+    function tierLabel(item, tier) {
+      if (!tier) return "";
+      return hasSinglePrice(item) || !tier.seat || tier.seat === "일반"
+        ? formatWon(tier.price)
+        : `${tier.seat} ${formatWon(tier.price)}`;
+    }
+
+    function priceLabel(item) {
+      const selected = getSelectedSeat(item);
+      if (selected) return tierLabel(item, selected);
+      const minPrice = getMinPrice(item);
+      if (minPrice !== null) return `최저 ${formatWon(minPrice)}`;
+      if (isTicketPending(item)) return "예매 오픈 전";
+      return "예매처 가격 확인 필요";
     }
 
     function formatDate(value) {
       return value.replaceAll("-", ".");
     }
 
-    function daysUntil(startDate) {
-      const start = new Date(`${startDate}T00:00:00+09:00`);
-      return Math.ceil((start - today) / 86400000);
+    function addDays(value, diff) {
+      const date = new Date(`${value}T09:00:00`);
+      date.setDate(date.getDate() + diff);
+      return date.toISOString().slice(0, 10);
     }
 
-    function includesWeekend(item) {
-      const start = new Date(`${item.startDate}T00:00:00+09:00`);
-      const end = new Date(`${item.endDate}T00:00:00+09:00`);
-      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-        const day = date.getDay();
-        if (day === 0 || day === 6) return true;
+    function clampDate(value, start, end) {
+      if (!value) return start;
+      if (value < start) return start;
+      if (value > end) return end;
+      return value;
+    }
+
+    function googleDate(value) {
+      return value.replaceAll("-", "");
+    }
+
+    function overlapsRange(item, start, end) {
+      return item.startDate <= end && item.endDate >= start;
+    }
+
+    function daysBetween(start, end) {
+      return Math.ceil((new Date(end) - new Date(start)) / 86400000);
+    }
+
+    function isTicketPending(item) {
+      return item.ticketStatus && item.ticketStatus !== "예매 가능";
+    }
+
+    function isClosingSoon(item) {
+      if (item.isClosingSoonSource) return true;
+      if (!item.endDate || item.endDate < TODAY) return false;
+      return daysBetween(TODAY, item.endDate) <= 14;
+    }
+
+    function normalizeTitle(title) {
+      return (title || "")
+        .replace(/[〈〉<>［］\[\]（）(){}]/g, "")
+        .replace(/[-–—_:|]/g, " ")
+        .replace(/\b서울\b|\bSeoul\b/gi, "")
+        .replace(/\d{1,2}\/\d{1,2}|\d{1,2}월|\d{4}/g, "")
+        .replace(/\s+/g, "")
+        .toLowerCase();
+    }
+
+    function duplicateKey(item) {
+      return [normalizeTitle(item.title), item.startDate, item.endDate, item.venue || ""].join("|");
+    }
+
+    function dedupeRecommendations(items) {
+      const grouped = new Map();
+      items.forEach((item) => {
+        const key = duplicateKey(item);
+        const prev = grouped.get(key);
+        if (!prev) {
+          grouped.set(key, item);
+          return;
+        }
+        const prevPrice = getMinPrice(prev) ?? Number.MAX_SAFE_INTEGER;
+        const itemPrice = getMinPrice(item) ?? Number.MAX_SAFE_INTEGER;
+        const itemBonus = (item.priceTiers?.length ? 3 : 0) + (item.imageUrl ? 1 : 0) - itemPrice / 1000000;
+        const prevBonus = (prev.priceTiers?.length ? 3 : 0) + (prev.imageUrl ? 1 : 0) - prevPrice / 1000000;
+        if ((item.score + itemBonus) > (prev.score + prevBonus)) grouped.set(key, item);
+      });
+      return [...grouped.values()].sort((a, b) => b.score - a.score);
+    }
+
+    function statusTags(item) {
+      const tags = [];
+      if (isClosingSoon(item)) tags.push(`<span class="tag warn">마감 임박</span>`);
+      if (isTicketPending(item)) tags.push(`<span class="tag muted">예매 오픈 전</span>`);
+      return tags.join("");
+    }
+
+    function pricePreview(item) {
+      if (!Array.isArray(item.priceTiers) || !item.priceTiers.length) {
+        return isTicketPending(item) ? "좌석별 가격은 예매 오픈 후 확인 가능합니다." : "좌석별 가격표가 아직 수집되지 않았습니다.";
       }
-      return false;
-    }
-
-    function inferFromText(text) {
-      const normalized = text.trim();
-      const regions = ["서울", "경기·인천·강원", "대전·충청", "광주·전라", "대구·경북", "부산·경남", "제주"];
-      const genres = ["뮤지컬", "연극", "전시", "클래식/오페라", "콘서트", "발레/무용", "국악"];
-      const region = regions.find((item) => normalized.includes(item.split("·")[0]) || normalized.includes(item));
-      const pickedGenres = genres.filter((item) => normalized.includes(item.split("/")[0]) || normalized.includes(item));
-      const inferredRegion = region || (/[가-힣]+구/.test(normalized) ? "서울" : "");
-      const styleRules = [
-        { style: "코믹", words: ["코믹", "코미디", "웃긴", "웃기는", "유쾌", "재밌", "재미"] },
-        { style: "가벼운", words: ["가볍", "부담", "편하게"] },
-        { style: "로맨틱", words: ["로맨틱", "로맨스", "연애", "데이트"] },
-        { style: "공포", words: ["공포", "무서", "스릴"] },
-        { style: "입문", words: ["입문", "처음", "초심자"] },
-        { style: "전시", words: ["전시", "미술", "그림"] }
-      ];
-      const styles = styleRules
-        .filter((rule) => rule.words.some((word) => normalized.includes(word)))
-        .map((rule) => rule.style);
-      const budgetMatch = normalized.match(/(\d{1,3})(?:\s?만)\s?원?/);
-      const budget = budgetMatch ? Number(budgetMatch[1]) * 10000 : defaultBudget;
-      const dateRange = inferDateRange(normalized);
-      const asksMore = /(더|다른|또|추가|말고).*(있|없|보여|추천|알려)|((있|없).*(더|다른|또))/.test(normalized);
-      const asksList = /(어떤|뭐|목록|리스트|나열|열거|정리|쭉|있어|있나|보여|알려)/.test(normalized);
-      const intent = asksMore ? "more" : asksList ? "list" : "recommend";
-
-      return {
-        region: inferredRegion,
-        genres: pickedGenres,
-        styles,
-        budget,
-        dateRange,
-        tone: normalized,
-        intent,
-        hasBudget: Boolean(budgetMatch)
-      };
+      if (hasSinglePrice(item)) return formatWon(item.priceTiers[0].price);
+      return item.priceTiers.slice(0, 3).map((tier) => tierLabel(item, tier)).join(" · ");
     }
 
     function inferDateRange(text) {
       const wantsFall = text.includes("가을") || text.includes("선선") || text.includes("9월") || text.includes("10월") || text.includes("11월");
       const dislikesSummer = /여름.{0,12}(싫|더워|덥|피하|말고|아니|너무)/.test(text) || /(싫|더워|덥|피하|말고|아니).{0,12}여름/.test(text);
       const wantsSummer = (text.includes("여름") || text.includes("방학")) && !dislikesSummer;
-
       if (wantsFall) return "fall";
       if (text.includes("이번") || text.includes("곧")) return "soon";
       if (wantsSummer) return "summer";
-      if (text.includes("주말")) return "weekend";
       return "";
     }
 
-    function overlapsRange(item, startDate, endDate) {
-      return item.startDate <= endDate && item.endDate >= startDate;
+    function inferCriteria(text) {
+      const normalized = text.trim();
+      const typeTerms = {
+        "뮤지컬": ["뮤지컬"],
+        "연극": ["연극"],
+        "전시": ["전시", "미술", "그림"],
+        "클래식/오페라": ["클래식", "오페라"],
+        "콘서트": ["콘서트"],
+        "국악": ["국악", "창극", "판소리"],
+        "발레/무용": ["발레", "무용", "댄스"]
+      };
+      const clearTypeWords = ["아니어도", "아니라도", "말고", "상관없", "괜찮", "신경 안", "무관"];
+      const clearsRegion = false;
+      const region = "서울";
+      const clearGenres = Object.entries(typeTerms).filter(([type, terms]) => {
+        const matchedTerms = terms.filter((term) => normalized.includes(term));
+        if (!matchedTerms.length) return false;
+        return clearTypeWords.some((word) => {
+          const wordIndex = normalized.indexOf(word);
+          const genreIndex = Math.min(...matchedTerms.map((term) => normalized.indexOf(term)));
+          return wordIndex >= 0 && Math.abs(wordIndex - genreIndex) < 20;
+        });
+      }).map(([type]) => type);
+      const genres = Object.entries(typeTerms)
+        .filter(([type, terms]) => !clearGenres.includes(type) && terms.some((term) => normalized.includes(term)))
+        .map(([type]) => type);
+      const styles = [];
+      const actorNames = [...new Set(cultureDb.flatMap((item) => item.cast || []))];
+      const actors = actorNames.filter((name) => normalized.includes(name));
+      const budgetMatch = normalized.match(/(\d{1,3})(?:\s?만)\s?원?/);
+      const asksMore = /(더|다른|또|추가|말고).*(있|없|보여|추천|알려)|((있|없).*(더|다른|또))/.test(normalized);
+      const asksList = /(목록|리스트|나열|열거|정리|쭉|어떤|뭐|있어|있나|보여|알려)/.test(normalized);
+      const relaxesGenre = clearGenres.length > 0 || /(종류|유형).{0,8}(상관없|신경 안|무관|아무거나|괜찮)/.test(normalized);
+      const clearsGenreAll = !genres.length && /(작품|공연).{0,12}(나열|추천|보여|알려|보고|하는|있어)/.test(normalized);
+      return {
+        raw: normalized,
+        region,
+        clearsRegion,
+        genres,
+        clearGenres,
+        styles,
+        actors,
+        budget: budgetMatch ? Number(budgetMatch[1]) * 10000 : state.criteria.budget || state.budget,
+        hasBudget: Boolean(budgetMatch),
+        dateRange: inferDateRange(normalized),
+        intent: asksMore ? "more" : asksList ? "list" : relaxesGenre ? "relax" : "recommend",
+        relaxesGenre,
+        clearsGenreAll,
+        hasExplicitFilter: Boolean(genres.length || actors.length || budgetMatch || inferDateRange(normalized))
+      };
+    }
+
+    function resolveCriteria(raw) {
+      const next = {
+        ...state.criteria,
+        raw: raw.raw,
+        excludeIds: []
+      };
+      next.region = "서울";
+      if (raw.clearsGenreAll) next.genres = [];
+      else if (raw.relaxesGenre) next.genres = raw.clearGenres.length ? next.genres.filter((genre) => !raw.clearGenres.includes(genre)) : [];
+      else if (raw.genres.length) next.genres = raw.genres;
+      next.styles = [];
+      if (raw.actors.length) next.actors = raw.actors;
+      if (raw.dateRange) next.dateRange = raw.dateRange;
+      if (raw.hasBudget) next.budget = raw.budget;
+      next.intent = raw.intent;
+      if (raw.intent === "more") next.excludeIds = state.lastResults.map((item) => item.id);
+      return next;
+    }
+
+    function getRecommendations(criteria) {
+      const items = cultureDb
+        .filter((item) => item.endDate >= TODAY)
+        .filter((item) => !criteria.region || item.region === criteria.region)
+        .filter((item) => !criteria.genres.length || criteria.genres.includes(item.genre))
+        .filter((item) => !criteria.actors.length || criteria.actors.some((actor) => (item.cast || []).includes(actor)))
+        .filter((item) => criteria.dateRange !== "fall" || overlapsRange(item, "2026-09-01", "2026-11-30"))
+        .filter((item) => criteria.dateRange !== "summer" || overlapsRange(item, "2026-06-20", "2026-08-31"))
+        .filter((item) => !criteria.excludeIds.includes(item.id))
+        .filter((item) => getMinPrice(item) === null || getMinPrice(item) <= criteria.budget)
+        .map((item) => ({ ...item, score: scoreItem(item, criteria) }))
+        .sort((a, b) => b.score - a.score);
+      return dedupeRecommendations(items).slice(0, 12);
     }
 
     function scoreItem(item, criteria) {
       let score = 0;
-      const tone = criteria.tone || "";
-      const startGap = daysUntil(item.startDate);
-      const keywordHits = item.mood.filter((keyword) => tone.includes(keyword)).length;
-      const styleHits = criteria.styles.filter((style) => item.mood.includes(style) || item.genre.includes(style)).length;
-      const actorHits = (criteria.actors || []).filter((actor) => (item.cast || []).includes(actor)).length;
-
-      if (!criteria.region || item.region === criteria.region) score += 24;
-      if (!criteria.genres.length || criteria.genres.includes(item.genre)) score += 22;
-      if (item.estimatedPrice <= criteria.budget) score += 20;
-      score += Math.min(item.discountRate, 50) / 2;
-      score += keywordHits * 12;
-      score += styleHits * 26;
-      score += actorHits * 35;
-
-      if (tone.includes("가볍") && item.mood.includes("가벼운")) score += 15;
-      if (tone.includes("데이트") && item.mood.includes("데이트")) score += 15;
-      if (tone.includes("혼자") && item.mood.includes("혼자")) score += 15;
-      if (tone.includes("입문") && item.mood.includes("입문")) score += 15;
-      if (tone.includes("가성비") && item.mood.includes("가성비")) score += 12;
-      if (tone.includes("공포") && item.mood.includes("공포")) score += 12;
-      if ((tone.includes("코믹") || tone.includes("코미디") || tone.includes("재밌") || tone.includes("웃긴")) && !item.mood.includes("코믹")) score -= 18;
-      if ((tone.includes("무겁지") || tone.includes("가볍")) && item.mood.includes("진지한")) score -= 20;
-
-      if (criteria.dateRange === "soon" && startGap >= 0 && startGap <= 30) score += 12;
+      if (!criteria.region || item.region === criteria.region) score += 18;
+      if (!criteria.genres.length || criteria.genres.includes(item.genre)) score += 18;
+      score += criteria.actors.filter((actor) => (item.cast || []).includes(actor)).length * 34;
+      if (criteria.dateRange === "fall" && overlapsRange(item, "2026-09-01", "2026-11-30")) score += 16;
+      if (criteria.dateRange === "fall" && item.startDate >= "2026-09-01" && item.startDate <= "2026-11-30") score += 8;
       if (criteria.dateRange === "summer" && overlapsRange(item, "2026-06-20", "2026-08-31")) score += 12;
-      if (criteria.dateRange === "fall" && overlapsRange(item, "2026-09-01", "2026-11-30")) score += 18;
-      if (criteria.dateRange === "fall" && item.startDate >= "2026-09-01" && item.startDate <= "2026-11-30") score += 10;
-      if (criteria.dateRange === "weekend" && includesWeekend(item)) score += 12;
-
-      if (item.startDate < "2026-06-01" && item.endDate > "2026-11-30") score -= 8;
-
+      const minPrice = getMinPrice(item);
+      if (minPrice !== null && minPrice <= criteria.budget) score += 12;
+      if (minPrice !== null && minPrice <= criteria.budget / 3) score += 4;
+      if (item.rating) score += item.rating;
       return score;
-    }
-
-    function getRecommendations(criteria) {
-      return sampleDb
-        .filter((item) => item.endDate >= "2026-05-26")
-        .filter((item) => !criteria.region || item.region === criteria.region)
-        .filter((item) => !criteria.genres.length || criteria.genres.includes(item.genre))
-        .filter((item) => !criteria.styles.length || criteria.styles.some((style) => item.mood.includes(style) || item.genre.includes(style)))
-        .filter((item) => !criteria.actors.length || criteria.actors.some((actor) => (item.cast || []).includes(actor)))
-        .filter((item) => !criteria.excludeIds || !criteria.excludeIds.includes(item.id))
-        .filter((item) => item.estimatedPrice <= criteria.budget)
-        .map((item) => ({ ...item, score: scoreItem(item, criteria) }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 6);
-    }
-
-    function buildBundle(items, budget) {
-      const sorted = [...items].sort((a, b) => a.estimatedPrice - b.estimatedPrice);
-      const bundle = [];
-      let spent = 0;
-      const usedGenres = new Set();
-
-      for (const item of sorted) {
-        if (spent + item.estimatedPrice > budget) continue;
-        if (bundle.length >= 3) break;
-        if (usedGenres.has(item.genre) && bundle.length > 0) continue;
-        bundle.push(item);
-        usedGenres.add(item.genre);
-        spent += item.estimatedPrice;
-      }
-
-      return { bundle, spent };
-    }
-
-    function addMessage(role, text) {
-      const node = document.createElement("div");
-      node.className = `message ${role}`;
-      node.textContent = text;
-      elements.messages.appendChild(node);
-      elements.messages.scrollTop = elements.messages.scrollHeight;
     }
 
     function buildAnswer(criteria, items) {
       if (!items.length) {
-        const genreText = criteria.genres.length ? criteria.genres.join(", ") : "전체";
-        const styleText = criteria.styles.length ? `, 분위기는 ${criteria.styles.join(", ")}` : "";
-        return criteria.intent === "more"
-          ? `지금 조건에서 앞서 보여준 후보를 제외하면 샘플 DB 안에는 더 남은 작품이 없어요.\n\n지역은 ${criteria.region || "전체"}, 장르는 ${genreText}${styleText}, 예산은 ${formatWon(criteria.budget)}로 보고 있습니다. 조건을 조금 넓히면 다른 후보를 다시 찾아볼 수 있어요.`
-          : `조건을 조금 엄격하게 잡았더니 샘플 DB 안에서는 추천 후보가 없어요.\n\n지역은 ${criteria.region || "전체"}, 장르는 ${genreText}${styleText}, 예산은 ${formatWon(criteria.budget)}로 보았습니다. 지역이나 장르를 넓히면 다시 찾아볼 수 있어요.`;
+        return `조건에 맞는 서울 공연이 아직 없습니다.\n\n현재 조건: 서울 / ${criteria.genres.length ? criteria.genres.join(", ") : "전체 작품 종류"} / ${formatWon(criteria.budget)}\n작품 종류나 예산 조건을 조금 넓히면 다시 찾아볼 수 있어요.`;
       }
-
-      const top = items[0];
-      const genreText = criteria.genres.length ? criteria.genres.join(", ") : "장르 전체";
-      const styleText = criteria.styles.length ? ` / ${criteria.styles.join(", ")} 분위기` : "";
-      const dateText = criteria.dateRange === "fall" ? " / 가을 관람 선호" :
-        criteria.dateRange === "summer" ? " / 여름 관람 선호" :
-        criteria.dateRange === "soon" ? " / 가까운 일정 선호" :
-        criteria.dateRange === "weekend" ? " / 주말 포함 선호" : "";
-      const { bundle, spent } = buildBundle(items, criteria.budget);
-      const bundleText = bundle.length > 1
-        ? `\n\n예산 조합으로는 ${bundle.map((item) => `「${item.title}」`).join(" + ")}를 담으면 약 ${formatWon(spent)}입니다. 남는 예산은 약 ${formatWon(criteria.budget - spent)}예요.`
-        : "";
-
-      if (criteria.intent === "more") {
-        const list = items.slice(0, 4).map((item) => `- 「${item.title}」: ${item.genre}, ${formatWon(item.estimatedPrice)}, ${formatDate(item.startDate)}부터`).join("\n");
-        return `네, 앞서 본 후보 말고도 더 볼 만한 작품이 있습니다.\n\n${list}\n\n이 중에서는 「${top.title}」을 먼저 볼 만해요. ${criteria.styles.length ? `${criteria.styles.join(", ")} 분위기와 잘 맞고, ` : ""}예산도 ${formatWon(criteria.budget)} 안에 들어옵니다.`;
-      }
-
       if (criteria.intent === "list") {
-        const list = items.slice(0, 5).map((item) => `- 「${item.title}」 (${item.genre}, ${formatWon(item.estimatedPrice)})`).join("\n");
-        return `조건에 맞는 후보를 목록으로 보면 이런 작품들이 있어요.\n\n${list}\n\n그중 추천 순위가 가장 높은 건 「${top.title}」입니다. ${top.mood.slice(0, 3).join(", ")} 쪽 취향과 잘 맞아서 먼저 띄웠어요.`;
-      }
-
-      return `가장 먼저 볼 만한 후보는 「${top.title}」입니다. ${top.genre}이고, ${top.venue}에서 ${formatDate(top.startDate)}부터 관람 가능해요. 테스트 예상가는 ${formatWon(top.estimatedPrice)}이라서 예산 안에 들어옵니다.\n\n이번 추천은 ${criteria.region || "전국"} / ${genreText}${styleText}${dateText} / ${formatWon(criteria.budget)} 기준으로 골랐어요. 실제 좌석 가격은 예매처에서 최종 확인이 필요합니다.${bundleText}`;
-    }
-
-    function renderPager(totalItems) {
-      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-      currentPage = Math.min(Math.max(currentPage, 1), totalPages);
-      elements.pageIndicator.textContent = `${currentPage} / ${totalPages}`;
-      elements.prevPage.disabled = currentPage <= 1;
-      elements.nextPage.disabled = currentPage >= totalPages;
-    }
-
-    function renderCards(items) {
-      currentRecommendations = items;
-      renderPager(items.length);
-
-      if (!items.length) {
-        elements.cards.innerHTML = `<p class="empty">조건에 맞는 샘플 작품이 없습니다. 채팅창에서 지역이나 장르를 넓혀보세요.</p>`;
-        return;
-      }
-
-      const visibleItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-      elements.cards.innerHTML = visibleItems.map((item) => {
-        const soon = daysUntil(item.startDate) >= 0 && daysUntil(item.startDate) <= 14;
-        const inCart = cart.includes(item.id);
-        return `
-          <article class="card">
-            <div class="badges">
-              <span class="badge">${item.genre}</span>
-              <span class="badge">${item.region}</span>
-              ${soon ? `<span class="badge hot">임박</span>` : ""}
-            </div>
-            <h3>${item.title}</h3>
-            <div class="meta">
-              <span>${formatDate(item.startDate)} - ${formatDate(item.endDate)}</span>
-              <span>${item.venue}</span>
-              <span>${item.benefit}</span>
-            </div>
-            <div class="price">
-              <span>테스트 예상가</span>
-              <strong>${formatWon(item.estimatedPrice)}</strong>
-            </div>
-            <div class="card-actions">
-              <button class="secondary" type="button" data-add-cart="${item.id}">${inCart ? "담김" : "담기"}</button>
-              <a href="${item.url}" target="_blank" rel="noreferrer">${item.seller} 확인</a>
-            </div>
-          </article>
-        `;
-      }).join("");
-    }
-
-    function renderInitialEmptyState() {
-      currentRecommendations = [];
-      currentPage = 1;
-      renderPager(0);
-      elements.resultHint.textContent = "입력 대기";
-      elements.cards.innerHTML = `<p class="empty">채팅창에 원하는 조건을 입력하면 추천 후보가 여기에 표시됩니다.</p>`;
-    }
-
-    function renderCart() {
-      const items = cart.map((id) => sampleDb.find((item) => item.id === id)).filter(Boolean);
-      const total = items.reduce((sum, item) => sum + item.estimatedPrice, 0);
-
-      elements.cartCount.textContent = items.length.toLocaleString("ko-KR");
-      elements.cartTotal.textContent = formatWon(total);
-      elements.cartRemain.textContent = formatWon(lastBudget - total);
-
-      if (!items.length) {
-        elements.cartItems.innerHTML = `<p class="empty">추천 후보에서 마음에 드는 작품을 담아보세요.</p>`;
-        return;
-      }
-
-      elements.cartItems.innerHTML = items.map((item) => `
-        <article class="cart-item">
-          <button class="remove-item" type="button" data-remove-cart="${item.id}" aria-label="${item.title} 장바구니에서 빼기">×</button>
-          <h3>${item.title}</h3>
-          <div class="meta">
-            <span>${item.genre} · ${item.region}</span>
-            <span>${formatDate(item.startDate)} · ${formatWon(item.estimatedPrice)}</span>
-          </div>
-        </article>
-      `).join("");
-    }
-
-    function runRecommendation(inputText = "") {
-      const criteria = inferFromText(inputText);
-      const hasNewFilters = Boolean(criteria.region || criteria.genres.length || criteria.styles.length || criteria.dateRange || criteria.hasBudget);
-
-      if (criteria.intent === "more" && !hasNewFilters) {
-        criteria.region = lastCriteria.region;
-        criteria.genres = [...lastCriteria.genres];
-        criteria.styles = [...lastCriteria.styles];
-        criteria.dateRange = lastCriteria.dateRange;
-        criteria.budget = lastCriteria.budget;
-      }
-
-      if (criteria.intent === "more") {
-        criteria.excludeIds = [...lastShownIds];
-      }
-
-      lastCriteria = criteria;
-      lastBudget = criteria.budget;
-      const items = getRecommendations(criteria);
-      if (items.length) currentRecommendations = items;
-      lastShownIds = criteria.intent === "more"
-        ? [...new Set([...lastShownIds, ...items.map((item) => item.id)])].slice(-18)
-        : items.map((item) => item.id);
-      committedRecommendations = items;
-      currentPage = 1;
-
-      const hintParts = [
-        criteria.region || "전체 지역",
-        criteria.genres.length ? criteria.genres.join(", ") : "전체 장르",
-        criteria.styles.length ? criteria.styles.join(", ") : "",
-        criteria.actors.length ? criteria.actors.join(", ") : "",
-        criteria.dateRange === "fall" ? "가을" : criteria.dateRange === "summer" ? "여름" : criteria.dateRange === "soon" ? "임박" : ""
-      ].filter(Boolean);
-      elements.resultHint.textContent = hintParts.join(" · ");
-      renderCards(items);
-      renderCart();
-      addMessage("bot", buildAnswer(criteria, items));
-    }
-
-    function inferFromText(text) {
-      const normalized = text.trim();
-      const regions = ["서울", "경기·인천·강원", "대전·충청", "광주·전라", "대구·경북", "부산·경남", "제주"];
-      const genres = ["뮤지컬", "연극", "전시", "클래식/오페라", "콘서트", "발레/무용", "국악"];
-      const clearGenreWords = ["아니어도", "아니라도", "말고", "상관없", "괜찮", "신경 안", "무관"];
-      const region = regions.find((item) => normalized.includes(item.split("·")[0]) || normalized.includes(item));
-      const clearsRegion = /(전국|전체\s*지역|지역\s*(상관없|무관|아무데나|어디든)|어디든|아무데나)/.test(normalized);
-      const inferredRegion = clearsRegion ? "" : region || (/[가-힣]+구/.test(normalized) ? "서울" : "");
-      const clearGenres = genres.filter((genre) => {
-        const shortName = genre.split("/")[0];
-        const genreTerms = genre === "클래식/오페라" ? ["클래식", "오페라"] : [shortName, genre];
-        return genreTerms.some((term) => normalized.includes(term)) && clearGenreWords.some((word) => {
-          const genreIndex = Math.min(...genreTerms.filter((term) => normalized.includes(term)).map((term) => normalized.indexOf(term)));
-          const wordIndex = normalized.indexOf(word);
-          return wordIndex >= 0 && Math.abs(wordIndex - genreIndex) < 18;
-        });
-      });
-      const pickedGenres = genres.filter((genre) => {
-        const shortName = genre.split("/")[0];
-        const genreTerms = genre === "클래식/오페라" ? ["클래식", "오페라"] : [shortName, genre];
-        return !clearGenres.includes(genre) && genreTerms.some((term) => normalized.includes(term));
-      });
-      const styleRules = [
-        { style: "코믹", words: ["코믹", "코미디", "웃긴", "웃기는", "유쾌", "재밌", "재미"] },
-        { style: "가벼운", words: ["가볍", "부담", "편하게"] },
-        { style: "로맨틱", words: ["로맨틱", "로맨스", "연애", "데이트"] },
-        { style: "공포", words: ["공포", "호러", "무서", "스릴"] },
-        { style: "입문", words: ["입문", "처음", "초심자"] },
-        { style: "전시", words: ["전시", "미술", "그림"] }
-      ];
-      const styles = styleRules
-        .filter((rule) => rule.words.some((word) => normalized.includes(word)))
-        .map((rule) => rule.style);
-      const budgetMatch = normalized.match(/(\d{1,3})(?:\s?만)\s?원?/);
-      const budget = budgetMatch ? Number(budgetMatch[1]) * 10000 : defaultBudget;
-      const dateRange = inferDateRange(normalized);
-      const asksMore = /(더|다른|또|추가|말고).*(있|없|보여|추천|알려)|((있|없).*(더|다른|또))/.test(normalized);
-      const asksList = /(어떤|뭐|목록|리스트|나열|열거|정리|쭉|있어|있나|보여|알려)/.test(normalized);
-      const relaxesGenre = clearGenres.length > 0 || /(장르|유형).{0,8}(상관없|신경 안|무관|아무거나|괜찮)/.test(normalized);
-      const actorNames = [...new Set(sampleDb.flatMap((item) => item.cast || []))];
-      const actors = actorNames.filter((name) => normalized.includes(name));
-      const intent = asksMore ? "more" : asksList ? "list" : relaxesGenre ? "relax" : "recommend";
-
-      return {
-        region: inferredRegion,
-        genres: pickedGenres,
-        clearGenres,
-        styles,
-        actors,
-        budget,
-        dateRange,
-        tone: normalized,
-        intent,
-        hasBudget: Boolean(budgetMatch),
-        relaxesGenre,
-        clearsRegion
-      };
-    }
-
-    function resolveCriteria(rawCriteria) {
-      const nextCriteria = {
-        ...rawCriteria,
-        region: lastCriteria.region || "",
-        genres: [...(lastCriteria.genres || [])],
-        styles: [...(lastCriteria.styles || [])],
-        actors: [...(lastCriteria.actors || [])],
-        budget: lastCriteria.budget || defaultBudget,
-        dateRange: lastCriteria.dateRange || "",
-        excludeIds: []
-      };
-
-      if (rawCriteria.clearsRegion) {
-        nextCriteria.region = "";
-      } else if (rawCriteria.region) {
-        nextCriteria.region = rawCriteria.region;
-      }
-
-      if (rawCriteria.relaxesGenre) {
-        nextCriteria.genres = rawCriteria.clearGenres.length
-          ? nextCriteria.genres.filter((genre) => !rawCriteria.clearGenres.includes(genre))
-          : [];
-      } else if (rawCriteria.genres.length) {
-        nextCriteria.genres = [...rawCriteria.genres];
-      }
-
-      if (rawCriteria.styles.length) {
-        nextCriteria.styles = [...rawCriteria.styles];
-      }
-
-      if (rawCriteria.actors.length) {
-        nextCriteria.actors = [...rawCriteria.actors];
-      }
-
-      if (rawCriteria.styles.length && rawCriteria.tone.includes("장르") && !rawCriteria.genres.length) {
-        nextCriteria.genres = [];
-      }
-
-      if (rawCriteria.dateRange) {
-        nextCriteria.dateRange = rawCriteria.dateRange;
-      }
-
-      if (rawCriteria.hasBudget) {
-        nextCriteria.budget = rawCriteria.budget;
-      }
-
-      if (rawCriteria.intent === "more") {
-        nextCriteria.excludeIds = [...lastShownIds];
-      }
-
-      return nextCriteria;
-    }
-
-    function updateResultHint(criteria) {
-      const hintParts = [
-        criteria.region || "전체 지역",
-        criteria.genres.length ? criteria.genres.join(", ") : "전체 장르",
-        criteria.styles.length ? criteria.styles.join(", ") : "",
-        criteria.dateRange === "fall" ? "가을" : criteria.dateRange === "summer" ? "여름" : criteria.dateRange === "soon" ? "임박" : ""
-      ].filter(Boolean);
-      elements.resultHint.textContent = hintParts.join(" · ");
-    }
-
-    function buildChatAnswer(criteria, items) {
-      if (!items.length) {
-        const genreText = criteria.genres.length ? criteria.genres.join(", ") : "전체";
-        const styleText = criteria.styles.length ? `, 분위기는 ${criteria.styles.join(", ")}` : "";
-        return criteria.intent === "more"
-          ? `지금 조건에서 앞서 보여준 후보를 제외하면 샘플 DB 안에는 더 남은 작품이 없어요.\n\n지역은 ${criteria.region || "전체"}, 장르는 ${genreText}${styleText}, 예산은 ${formatWon(criteria.budget)}로 보고 있습니다. 조건을 조금 넓히면 다른 후보를 다시 찾아볼 수 있어요.`
-          : `조건을 조금 엄격하게 잡았더니 샘플 DB 안에서는 추천 후보가 없어요.\n\n지역은 ${criteria.region || "전체"}, 장르는 ${genreText}${styleText}, 예산은 ${formatWon(criteria.budget)}로 보았습니다. 지역이나 장르를 넓히면 다시 찾아볼 수 있어요.`;
-      }
-
-      const top = items[0];
-      const genreText = criteria.genres.length ? criteria.genres.join(", ") : "장르 전체";
-      const styleText = criteria.styles.length ? ` / ${criteria.styles.join(", ")} 분위기` : "";
-      const actorText = criteria.actors.length ? ` / ${criteria.actors.join(", ")} 출연` : "";
-      const dateText = criteria.dateRange === "fall" ? " / 가을 관람 선호" :
-        criteria.dateRange === "summer" ? " / 여름 관람 선호" :
-        criteria.dateRange === "soon" ? " / 가까운 일정 선호" :
-        criteria.dateRange === "weekend" ? " / 주말 포함 선호" : "";
-
-      if (criteria.intent === "more") {
-        const list = items.slice(0, 4).map((item) => `- 「${item.title}」: ${item.genre}, ${formatWon(item.estimatedPrice)}, ${formatDate(item.startDate)}부터`).join("\n");
-        return `네, 앞서 본 후보 말고도 더 볼 만한 작품이 있습니다.\n\n${list}\n\n이 중에서는 「${top.title}」을 먼저 볼 만해요. ${criteria.styles.length ? `${criteria.styles.join(", ")} 분위기와 잘 맞고, ` : ""}예산도 ${formatWon(criteria.budget)} 안에 들어옵니다.`;
-      }
-
-      if (criteria.intent === "list") {
-        const list = items.map((item) => `- 「${item.title}」 (${item.genre}, ${item.region}, ${formatWon(item.estimatedPrice)})`).join("\n");
+        const list = items.map((item) => `- 「${item.title}」 (${item.genre}, 서울, ${priceLabel(item)})`).join("\n");
         const ranking = items.slice(0, 3).map((item, index) => `${index + 1}. 「${item.title}」`).join("\n");
-        return `조건에 맞는 작품을 먼저 리스트업해볼게요.\n\n${list}\n\n제 추천 순위는 여기까지입니다.\n${ranking}\n\n각 작품의 추천 이유도 같이 보고 싶으면 말해주세요.`;
+        return `조건에 맞는 작품을 리스트업했습니다.\n\n${list}\n\n추천 순위는 여기까지입니다.\n${ranking}`;
       }
-
-      return buildRankedRecommendationAnswer(criteria, items, `${genreText}${styleText}${actorText}${dateText}`);
-    }
-
-    function buildRankedRecommendationAnswer(criteria, items, criteriaText) {
       const topItems = items.slice(0, 3);
       const lines = topItems.map((item, index) => {
-        const reasons = getRecommendationReasons(item, criteria, index);
-        return `${index + 1}. 「${item.title}」\n   ${item.genre} · ${item.region} · ${formatWon(item.estimatedPrice)}\n   추천 이유: ${reasons}`;
+        return `${index + 1}. 「${item.title}」\n   ${item.genre} · 서울 · ${priceLabel(item)}\n   추천 이유: ${getReasons(item, criteria, index)}`;
       }).join("\n\n");
-
-      const countNote = items.length < 3 ? `조건에 맞는 샘플 작품이 ${items.length}개라서 가능한 후보를 모두 보여드릴게요.` : "조건에 맞는 후보 중 추천 순위 3위까지 추렸습니다.";
-      return `${countNote}\n\n${lines}\n\n이번 추천은 ${criteria.region || "전국"} / ${criteriaText} / ${formatWon(criteria.budget)} 기준입니다. 실제 좌석 가격과 캐스팅은 예매처에서 최종 확인이 필요합니다.`;
+      const prefix = items.length < 3 ? `조건에 맞는 후보가 ${items.length}개라 가능한 작품을 모두 보여드릴게요.` : "조건에 맞는 후보 중 추천 순위 3위까지 추렸습니다.";
+      return `${prefix}\n\n${lines}\n\n마음에 드는 작품은 장바구니에 담은 뒤, 각 작품의 ‘일정 잡기’로 관람 희망일과 티켓팅 알림일을 정할 수 있어요.\n\n이 작품과 비슷한 시기에 같이 볼 수 있거나, 다른 작품 종류로 함께 보기 좋은 공연도 추천해드릴까요? 네 / 아니요`;
     }
 
-    function getRecommendationReasons(item, criteria, index) {
+    function getReasons(item, criteria, index) {
       const reasons = [];
-      if (criteria.styles.some((style) => item.mood.includes(style))) reasons.push(`${criteria.styles.join(", ")} 취향과 맞습니다`);
-      if (criteria.actors.some((actor) => (item.cast || []).includes(actor))) reasons.push(`입력한 배우가 출연 후보에 있습니다`);
-      if (criteria.dateRange === "fall" && overlapsRange(item, "2026-09-01", "2026-11-30")) reasons.push("가을 관람 조건에 맞습니다");
-      if (item.rating) reasons.push(`테스트 평점이 ${item.rating.toFixed(1)}점으로 높은 편입니다`);
-      if (item.estimatedPrice <= criteria.budget / 3) reasons.push("예산 대비 부담이 작습니다");
-      if (index === 0) reasons.push("조건 일치도가 가장 높아서 1순위로 두었습니다");
-      return reasons.slice(0, 3).join(", ") || "조건에 안정적으로 맞는 후보입니다";
-    }
-
-    function runRecommendation(inputText = "") {
-      const criteria = resolveCriteria(inferFromText(inputText));
-      lastCriteria = criteria;
-      lastBudget = criteria.budget;
-      const items = getRecommendations(criteria);
-      lastShownIds = criteria.intent === "more"
-        ? [...new Set([...lastShownIds, ...items.map((item) => item.id)])].slice(-18)
-        : items.map((item) => item.id);
-      currentPage = 1;
-      updateResultHint(criteria);
-      renderCards(items);
-      renderCart();
-      const answer = buildChatAnswer(criteria, items);
-      addMessage("bot", answer);
-    }
-
-    function inferFromText(text) {
-      const normalized = text.trim();
-      const regions = ["서울", "경기·인천·강원", "대전·충청", "광주·전라", "대구·경북", "부산·경남", "제주"];
-      const genres = ["뮤지컬", "연극", "전시", "클래식/오페라", "콘서트", "발레/무용", "국악"];
-      const clearGenreWords = ["아니어도", "아니라도", "말고", "상관없", "괜찮", "신경 안", "무관"];
-      const region = regions.find((item) => normalized.includes(item.split("·")[0]) || normalized.includes(item));
-      const clearsRegion = /(전국|전체\s*지역|지역\s*(상관없|무관|아무데나|어디든)|어디든|아무데나)/.test(normalized);
-      const inferredRegion = clearsRegion ? "" : region || (/[가-힣]+구/.test(normalized) ? "서울" : "");
-      const genreTerms = {
-        "뮤지컬": ["뮤지컬"],
-        "연극": ["연극", "공포극", "코미디극"],
-        "전시": ["전시", "미술"],
-        "클래식/오페라": ["클래식", "오페라"],
-        "콘서트": ["콘서트", "공연"],
-        "발레/무용": ["발레", "무용"],
-        "국악": ["국악", "창극"]
-      };
-      const clearGenres = genres.filter((genre) => {
-        const matchedTerms = genreTerms[genre].filter((term) => normalized.includes(term));
-        return matchedTerms.length && clearGenreWords.some((word) => {
-          const genreIndex = Math.min(...matchedTerms.map((term) => normalized.indexOf(term)));
-          const wordIndex = normalized.indexOf(word);
-          return wordIndex >= 0 && Math.abs(wordIndex - genreIndex) < 18;
-        });
-      });
-      const pickedGenres = genres.filter((genre) => !clearGenres.includes(genre) && genreTerms[genre].some((term) => normalized.includes(term)));
-      const styleRules = [
-        { style: "코믹", words: ["코믹", "코미디", "웃긴", "웃기는", "유쾌", "재밌", "재미"] },
-        { style: "가벼운", words: ["가볍", "부담", "편하게"] },
-        { style: "로맨틱", words: ["로맨틱", "로맨스", "연애", "데이트"] },
-        { style: "공포", words: ["공포", "호러", "무서", "스릴"] },
-        { style: "입문", words: ["입문", "처음", "초심자"] },
-        { style: "전시", words: ["전시", "미술", "그림"] }
-      ];
-      const styles = styleRules.filter((rule) => rule.words.some((word) => normalized.includes(word))).map((rule) => rule.style);
-      const actorNames = [...new Set(sampleDb.flatMap((item) => item.cast || []))];
-      const actors = actorNames.filter((name) => normalized.includes(name));
-      const budgetMatch = normalized.match(/(\d{1,3})(?:\s?만)\s?원?/);
-      const asksMore = /(더|다른|또|추가|말고).*(있|없|보여|추천|알려)|((있|없).*(더|다른|또))/.test(normalized);
-      const asksList = /(어떤|뭐|목록|리스트|나열|열거|정리|쭉|있어|있나|보여|알려)/.test(normalized);
-      const relaxesGenre = clearGenres.length > 0 || /(장르|유형).{0,8}(상관없|신경 안|무관|아무거나|괜찮)/.test(normalized);
-
-      return {
-        region: inferredRegion,
-        genres: pickedGenres,
-        clearGenres,
-        styles,
-        actors,
-        budget: budgetMatch ? Number(budgetMatch[1]) * 10000 : defaultBudget,
-        dateRange: inferDateRange(normalized),
-        tone: normalized,
-        intent: asksMore ? "more" : asksList ? "list" : relaxesGenre ? "relax" : "recommend",
-        hasBudget: Boolean(budgetMatch),
-        relaxesGenre,
-        clearsRegion
-      };
-    }
-
-    function buildChatAnswer(criteria, items) {
-      if (!items.length) {
-        const genreText = criteria.genres.length ? criteria.genres.join(", ") : "전체";
-        const styleText = criteria.styles.length ? `, 분위기는 ${criteria.styles.join(", ")}` : "";
-        return `조건에 맞는 샘플 작품이 아직 없어요.\n\n지역은 ${criteria.region || "전체"}, 장르는 ${genreText}${styleText}, 예산은 ${formatWon(criteria.budget)}로 보고 있습니다. 조건을 하나만 넓히면 다시 찾아볼 수 있어요.`;
-      }
-
-      if (criteria.intent === "list") {
-        const list = items.map((item) => `- 「${item.title}」 (${item.genre}, ${item.region}, ${formatWon(item.estimatedPrice)})`).join("\n");
-        const ranking = items.slice(0, 3).map((item, index) => `${index + 1}. 「${item.title}」`).join("\n");
-        return `조건에 맞는 작품을 먼저 리스트업해볼게요.\n\n${list}\n\n제 추천 순위는 여기까지입니다.\n${ranking}`;
-      }
-
-      const criteriaText = [
-        criteria.genres.length ? criteria.genres.join(", ") : "장르 전체",
-        criteria.styles.length ? `${criteria.styles.join(", ")} 분위기` : "",
-        criteria.actors.length ? `${criteria.actors.join(", ")} 출연` : "",
-        criteria.dateRange === "fall" ? "가을 관람 선호" : criteria.dateRange === "summer" ? "여름 관람 선호" : criteria.dateRange === "soon" ? "가까운 일정 선호" : ""
-      ].filter(Boolean).join(" / ");
-
-      return buildRankedRecommendationAnswer(criteria, items, criteriaText);
-    }
-
-    function buildRankedRecommendationAnswer(criteria, items, criteriaText) {
-      const topItems = items.slice(0, 3);
-      const lines = topItems.map((item, index) => {
-        const reasons = getRecommendationReasons(item, criteria, index);
-        return `${index + 1}. 「${item.title}」\n   ${item.genre} · ${item.region} · ${formatWon(item.estimatedPrice)}\n   추천 이유: ${reasons}`;
-      }).join("\n\n");
-      const countNote = items.length < 3 ? `조건에 맞는 샘플 작품이 ${items.length}개라서 가능한 후보를 모두 보여드릴게요.` : "조건에 맞는 후보 중 추천 순위 3위까지 추렸습니다.";
-      return `${countNote}\n\n${lines}\n\n이번 추천은 ${criteria.region || "전국"} / ${criteriaText} / ${formatWon(criteria.budget)} 기준입니다. 실제 좌석 가격과 캐스팅은 예매처에서 최종 확인이 필요합니다.`;
-    }
-
-    function getRecommendationReasons(item, criteria, index) {
-      const reasons = [];
-      const matchedStyles = criteria.styles.filter((style) => item.mood.includes(style));
-      if (matchedStyles.length) reasons.push(`${matchedStyles.join(", ")} 분위기 조건을 직접 만족합니다`);
-      if (criteria.genres.includes(item.genre)) reasons.push(`요청한 ${item.genre} 장르에 정확히 맞습니다`);
-      if (criteria.actors.some((actor) => (item.cast || []).includes(actor))) reasons.push("입력한 배우가 출연 후보에 포함되어 있습니다");
-      if (criteria.dateRange === "fall" && overlapsRange(item, "2026-09-01", "2026-11-30")) reasons.push("가을 기간에 관람할 수 있습니다");
-      if (item.mood.includes("가성비") || item.estimatedPrice <= 30000) reasons.push("가격 부담이 작아 예산을 아끼기 좋습니다");
-      if (item.mood.includes("유명작")) reasons.push("인지도가 있는 작품이라 첫 관람 후보로 안정적입니다");
-      if (item.mood.includes("참여형")) reasons.push("참여형 요소가 있어 관람 경험이 더 선명할 수 있습니다");
-      if (item.mood.includes("영화음악")) reasons.push("익숙한 영화음악 중심이라 접근성이 좋습니다");
-      if (item.rating && !reasons.some((reason) => reason.includes("가격"))) reasons.push(`테스트 평점 ${item.rating.toFixed(1)}점으로 만족도 기대치가 높습니다`);
+      if (criteria.genres.includes(item.genre)) reasons.push(`요청한 ${item.genre} 작품 종류와 정확히 맞습니다`);
+      if (criteria.actors.some((actor) => (item.cast || []).includes(actor))) reasons.push("입력한 배우가 출연진 후보에 포함되어 있습니다");
+      if (criteria.dateRange === "fall" && overlapsRange(item, "2026-09-01", "2026-11-30")) reasons.push("가을 기간에 관람 가능합니다");
+      const minPrice = getMinPrice(item);
+      if (minPrice !== null && minPrice <= criteria.budget / 2) reasons.push("잔여 지원금 안에서 다른 작품과 함께 담기 좋습니다");
+      if (item.startDate && item.endDate && item.startDate === item.endDate) reasons.push("관람일이 하루라 일정 확인 우선순위가 높습니다");
+      if (item.priceTiers && item.priceTiers.length > 1) reasons.push("좌석별 가격 선택지가 있어 예산에 맞춰 조정하기 좋습니다");
+      if (isClosingSoon(item)) reasons.push("공연 종료가 가까워 빠르게 확인하는 편이 좋습니다");
+      if (isTicketPending(item)) reasons.push("예매 오픈 전 작품이라 티켓팅 알림 후보로 관리하기 좋습니다");
+      if (item.benefit && item.benefit !== "혜택 정보 확인 필요") reasons.push(`${item.benefit} 혜택 정보가 확인됩니다`);
+      if (item.rating && reasons.length < 3) reasons.push(`테스트 평점 ${item.rating.toFixed(1)}점으로 만족도 기대치가 높습니다`);
       if (index === 0) reasons.push("조건 일치도가 가장 높아 1순위로 두었습니다");
       return [...new Set(reasons)].slice(0, 3).join(", ");
     }
 
-    elements.chatForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const text = elements.chatInput.value.trim();
-      if (!text) return;
+    function renderRecommendationCards(items) {
+      if (!items.length) return "";
+      return `<div class="recommendations">${items.slice(0, 3).map((item) => `
+        <article class="rec-card">
+          ${item.imageUrl ? `<img class="rec-poster" src="${item.imageUrl}" alt="${item.title} 포스터" loading="lazy" referrerpolicy="no-referrer" />` : `<div class="rec-poster placeholder">포스터<br>없음</div>`}
+          <div class="tags"><span class="tag">${item.genre}</span><span class="tag teal">${item.region}</span>${statusTags(item)}</div>
+          <h3>${item.title}</h3>
+          <div class="rec-meta">${formatDate(item.startDate)} - ${formatDate(item.endDate)} · ${item.venue} · ${item.sourceSite || "크롤링 DB"}</div>
+          <div class="rec-reason">${pricePreview(item)}</div>
+          <div class="card-actions"><span class="price">${priceLabel(item)}</span><button class="add-btn ${state.cart.includes(item.id) ? "added" : ""}" type="button" data-add="${item.id}">${state.cart.includes(item.id) ? "담김" : "+ 담기"}</button></div>
+        </article>`).join("")}</div>`;
+    }
+
+    function addMessage(role, text, cards = "") {
+      const node = document.createElement("div");
+      node.className = `msg ${role}`;
+      node.innerHTML = role === "user"
+        ? `<div class="bubble user"></div>`
+        : `<div class="avatar">✨</div><div class="bubble bot"></div>`;
+      node.querySelector(".bubble").textContent = text;
+      if (cards) node.querySelector(".bubble").insertAdjacentHTML("beforeend", cards);
+      el.messages.appendChild(node);
+      el.messages.scrollTop = el.messages.scrollHeight;
+    }
+
+    function isAffirmative(text) {
+      return /^(네|예|응|ㅇㅇ|어|좋아|그래|추천|해줘|보여줘|알려줘|yes|y)\.?$/i.test(text.trim()) || /(응|네|예).*(추천|보여|알려|좋)/.test(text);
+    }
+
+    function isNegative(text) {
+      return /^(아니|아니요|ㄴㄴ|no|n|괜찮아|됐어)\.?$/i.test(text.trim());
+    }
+
+    function getRelatedRecommendations(seed, criteria) {
+      const windowStart = addDays(seed.startDate < "2026-01-01" ? "2026-01-01" : seed.startDate, -45);
+      const windowEnd = addDays(seed.endDate > "2026-12-31" ? "2026-12-31" : seed.endDate, 45);
+      const seedKey = duplicateKey(seed);
+      const items = cultureDb
+        .filter((item) => item.id !== seed.id && duplicateKey(item) !== seedKey)
+        .filter((item) => item.region === "서울")
+        .filter((item) => overlapsRange(item, windowStart, windowEnd))
+        .filter((item) => getMinPrice(item) === null || getMinPrice(item) <= criteria.budget)
+        .map((item) => {
+          const differentGenre = item.genre !== seed.genre ? 18 : 0;
+          const sameGenre = item.genre === seed.genre ? 7 : 0;
+          const priceScore = getMinPrice(item) !== null && getMinPrice(seed) !== null && getMinPrice(item) <= getMinPrice(seed) ? 8 : 0;
+          return { ...item, score: differentGenre + sameGenre + priceScore + 12 };
+        })
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score);
+      return dedupeRecommendations(items).slice(0, 6);
+    }
+
+    function getMonthRange(month) {
+      const start = `2026-${String(month).padStart(2, "0")}-01`;
+      const last = new Date(2026, month, 0).getDate();
+      const end = `2026-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+      return {
+        start: start < TODAY ? TODAY : start,
+        end
+      };
+    }
+
+    function planMonths(frequency, avoidMonths) {
+      const currentMonth = Number(TODAY.slice(5, 7));
+      let months = [];
+      if (frequency === "monthly") months = Array.from({ length: 13 - currentMonth }, (_, index) => currentMonth + index);
+      else if (frequency === "quarterly") months = [currentMonth, currentMonth + 3, currentMonth + 6].filter((month) => month <= 12);
+      else if (frequency === "vacation") months = [7, 8, 12].filter((month) => month >= currentMonth);
+      else months = [currentMonth + 1, currentMonth + 3, currentMonth + 5].filter((month) => month >= currentMonth && month <= 12);
+      months = months.filter((month) => !avoidMonths.includes(month));
+      return months.length ? months : [currentMonth].filter((month) => !avoidMonths.includes(month));
+    }
+
+    function selectedOmakaseGenres() {
+      const selected = [...document.querySelectorAll("input[name='omakaseGenre']:checked")].map((input) => input.value);
+      if (!selected.length || selected.includes("기타")) return [];
+      const expanded = selected.flatMap((genre) => {
+        if (genre === "음악") return ["클래식/오페라", "콘서트", "국악"];
+        if (genre === "무용") return ["발레/무용"];
+        return [genre];
+      });
+      return [...new Set(expanded)];
+    }
+
+    function avoidMonthsFromInput() {
+      const avoid = el.omakaseAvoid.value;
+      if (avoid === "exam") return [6, 10, 11];
+      if (avoid !== "month") return [];
+      return [...el.omakaseAvoidMonth.value.matchAll(/(\d{1,2})\s?월?/g)]
+        .map((match) => Number(match[1]))
+        .filter((month) => month >= 1 && month <= 12);
+    }
+
+    const moodRules = {
+      light: ["코미디", "코믹", "힐링", "유쾌", "가족", "웃", "로맨스", "라면", "택시"],
+      moving: ["사랑", "성장", "위로", "삶", "감동", "가족", "기억", "눈"],
+      tense: ["미스터리", "추리", "범죄", "비밀", "스릴러", "공포", "사건", "살인"],
+      artistic: ["실험", "창작", "현대", "독립", "아트", "무용", "전시", "창극"],
+      easy: ["인기", "유명", "베스트", "스테디", "입문", "가족", "마티네"]
+    };
+
+    function textPool(item) {
+      return [item.title, item.description, item.categoryOriginal, item.genre, item.benefit].filter(Boolean).join(" ");
+    }
+
+    function moodMatchCount(item, mood) {
+      if (!mood) return 0;
+      const text = textPool(item).toLowerCase();
+      return (moodRules[mood] || []).filter((word) => text.includes(word.toLowerCase())).length;
+    }
+
+    function omakaseReason(item, config, month, moodHits) {
+      const reasons = [];
+      if (config.genres.includes(item.genre)) reasons.push(`선호 분야인 ${item.genre}에 맞춰 배치했습니다`);
+      if (moodHits) reasons.push(`제목/분류 텍스트의 ${config.moodLabel} 관련 키워드를 반영했습니다`);
+      if (config.persona === "intro") reasons.push("입문자가 접근하기 쉬운 가격대와 공연 유형을 우선했습니다");
+      if (config.persona === "variety") reasons.push("연간 계획 안에서 서로 다른 공연 유형을 경험하도록 구성했습니다");
+      if (config.persona === "value") reasons.push("남은 지원금을 효율적으로 쓰기 위해 최저가가 낮은 후보를 우선했습니다");
+      if (config.avoidMonths.length) reasons.push("피하고 싶은 시기를 제외하고 배치했습니다");
+      if (isClosingSoon(item)) reasons.push("마감 임박 후보라 빠르게 확인할 필요가 있습니다");
+      if (!reasons.length) reasons.push(`${month}월 관람 가능 기간과 예산 조건을 기준으로 선정했습니다`);
+      return [...new Set(reasons)].slice(0, 2).join(", ");
+    }
+
+    function scoreOmakaseItem(item, config, month, usedGenres) {
+      let score = 0;
+      const price = getMinPrice(item);
+      const moodHits = moodMatchCount(item, config.mood);
+      if (!config.genres.length || config.genres.includes(item.genre)) score += 20;
+      if (config.persona === "variety" && !usedGenres.has(item.genre)) score += 18;
+      if (config.persona === "focus" && config.genres.includes(item.genre)) score += 18;
+      if (config.persona === "value" && price !== null && price <= 40000) score += 20;
+      if (config.persona === "intro" && ["뮤지컬", "연극", "전시", "클래식/오페라"].includes(item.genre)) score += 10;
+      score += moodHits * 10;
+      if (price !== null && price <= config.budget / Math.max(1, config.months.length)) score += 8;
+      if (item.startDate.slice(5, 7) === String(month).padStart(2, "0")) score += 5;
+      if (item.priceTiers?.length) score += 3;
+      return { ...item, score, moodHits };
+    }
+
+    function makeOmakasePlan() {
+      const budget = Math.max(10000, Number(el.omakaseBudget.value) || state.budget);
+      state.budget = budget;
+      state.criteria.budget = budget;
+      const persona = el.omakasePersona.value;
+      const frequency = el.omakaseFrequency.value;
+      const mood = el.omakaseMood.value;
+      const moodLabel = el.omakaseMood.options[el.omakaseMood.selectedIndex]?.text || "";
+      const avoidMonths = avoidMonthsFromInput();
+      const genres = selectedOmakaseGenres();
+      const months = planMonths(frequency, avoidMonths);
+      const config = { budget, persona, frequency, mood, moodLabel, avoidMonths, genres, months };
+      const usedIds = new Set();
+      const usedGenres = new Set();
+      let spent = 0;
+      const plan = [];
+      months.forEach((month) => {
+        const range = getMonthRange(month);
+        const candidates = cultureDb
+          .filter((item) => item.endDate >= TODAY)
+          .filter((item) => overlapsRange(item, range.start, range.end))
+          .filter((item) => !genres.length || genres.includes(item.genre))
+          .filter((item) => !usedIds.has(duplicateKey(item)))
+          .filter((item) => {
+            const price = getMinPrice(item);
+            return price === null || spent + price <= budget;
+          })
+          .map((item) => scoreOmakaseItem(item, config, month, usedGenres))
+          .sort((a, b) => b.score - a.score);
+        const selected = dedupeRecommendations(candidates)[0];
+        if (!selected) return;
+        const price = getMinPrice(selected) || 0;
+        spent += price;
+        usedIds.add(duplicateKey(selected));
+        usedGenres.add(selected.genre);
+        plan.push({
+          month,
+          item: selected,
+          price,
+          watchDate: clampDate(range.start, selected.startDate, selected.endDate),
+          reason: omakaseReason(selected, config, month, selected.moodHits)
+        });
+      });
+      renderOmakasePlan(plan, budget, spent);
+      addMessage("bot", plan.length
+        ? `AI 오마카세 플랜을 ${plan.length}개 일정으로 구성했어요. 예상 사용 금액은 ${formatWon(spent)}, 남은 지원금은 ${formatWon(budget - spent)}입니다.`
+        : "조건에 맞는 오마카세 연간 계획을 만들지 못했어요. 예산이나 피하고 싶은 시기를 조금 넓혀주세요.");
+      renderCart();
+    }
+
+    function ensureCheapestSeat(item) {
+      if (!item || state.selectedSeats[item.id]) return;
+      if (!Array.isArray(item.priceTiers) || !item.priceTiers.length) return;
+      const cheapest = [...item.priceTiers].sort((a, b) => a.price - b.price)[0];
+      state.selectedSeats[item.id] = { seat: cheapest.seat, price: cheapest.price };
+    }
+
+    function addOmakaseItemToCart(id) {
+      const item = cultureDb.find((entry) => entry.id === id);
+      if (!item) return;
+      if (!state.cart.includes(id)) state.cart.push(id);
+      ensureCheapestSeat(item);
+      renderCart();
+      addMessage("bot", `「${item.title}」을 장바구니에 담았습니다. 좌석 가격표가 있는 경우 최저가 좌석을 우선 반영했어요.`);
+    }
+
+    function addOmakaseItemToSchedule(id, watchDate) {
+      const item = cultureDb.find((entry) => entry.id === id);
+      if (!item) return;
+      if (!state.cart.includes(id)) state.cart.push(id);
+      ensureCheapestSeat(item);
+      const selected = getSelectedSeat(item);
+      const schedule = {
+        id: `${item.id}-omakase-${Date.now()}`,
+        itemId: item.id,
+        title: item.title,
+        venue: item.venue,
+        url: item.url,
+        seat: selected?.seat || "예매 오픈 후 선택",
+        price: selected?.price || 0,
+        watchDate: clampDate(watchDate || item.startDate, item.startDate, item.endDate),
+        ticketOpenDate: item.ticketOpenDate || "",
+        reminderDate: ""
+      };
+      state.schedule = state.schedule.filter((entry) => entry.itemId !== item.id).concat(schedule).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
+      renderCart();
+      renderSchedule();
+      addMessage("bot", `「${item.title}」을 ${formatDate(schedule.watchDate)} 관람 일정으로 반영했습니다. 필요하면 장바구니에서 일정 잡기를 눌러 날짜를 조정할 수 있어요.`);
+    }
+
+    function renderOmakasePlan(plan, budget, spent) {
+      if (!plan.length) {
+        el.omakaseResult.innerHTML = `<p class="empty-cart">조건에 맞는 연간 플랜 후보가 없습니다.</p>`;
+        return;
+      }
+      el.omakaseResult.innerHTML = `
+        <div class="rule-note">예상 사용 금액 ${formatWon(spent)} · 남은 지원금 ${formatWon(budget - spent)}</div>
+        ${plan.map((entry) => `
+          <article class="plan-card">
+            <div class="plan-month">${entry.month}월</div>
+            <div class="plan-body">
+              <strong>${entry.item.title}</strong>
+              <div class="plan-meta">${entry.item.genre} · ${formatDate(entry.item.startDate)} - ${formatDate(entry.item.endDate)} · ${priceLabel(entry.item)}</div>
+              <div class="plan-reason">${entry.reason}</div>
+              <div class="plan-actions">
+                <button class="mini-btn" type="button" data-omakase-add="${entry.item.id}">장바구니 담기</button>
+                <button class="mini-btn" type="button" data-omakase-schedule="${entry.item.id}" data-watch-date="${entry.watchDate}">일정 반영</button>
+              </div>
+            </div>
+          </article>`).join("")}`;
+    }
+
+    function buildRelatedAnswer(seed, items) {
+      if (!items.length) {
+        return `「${seed.title}」와 비슷한 시기에 함께 볼 만한 추가 후보는 현재 DB에서 찾지 못했어요.\n\n관람 시기나 작품 종류를 조금 넓히면 다시 찾아볼 수 있습니다.`;
+      }
+      const lines = items.slice(0, 3).map((item, index) => {
+        const relation = item.genre !== seed.genre ? `${seed.genre}와 다른 ${item.genre}라 관람 구성이 덜 겹칩니다` : `${seed.genre} 안에서 같은 작품 종류로 이어집니다`;
+        return `${index + 1}. 「${item.title}」\n   ${item.genre} · ${formatDate(item.startDate)} - ${formatDate(item.endDate)} · ${priceLabel(item)}\n   추천 이유: ${relation}`;
+      }).join("\n\n");
+      return `좋아요. 「${seed.title}」와 비슷한 시기에 같이 보기 좋은 후보를 추렸습니다.\n\n${lines}`;
+    }
+
+    function parseKoreanDate(text) {
+      const normalized = text.trim();
+      const fullDate = normalized.match(/(20\d{2})[.\-/년\s]*(\d{1,2})[.\-/월\s]*(\d{1,2})\s?일?/);
+      const monthDay = normalized.match(/(\d{1,2})\s?월\s?(\d{1,2})\s?일/);
+      const monthOnly = normalized.match(/(\d{1,2})\s?월/);
+      if (fullDate) return `${fullDate[1]}-${fullDate[2].padStart(2, "0")}-${fullDate[3].padStart(2, "0")}`;
+      if (monthDay) return `2026-${monthDay[1].padStart(2, "0")}-${monthDay[2].padStart(2, "0")}`;
+      if (monthOnly) return `2026-${monthOnly[1].padStart(2, "0")}-15`;
+      return "";
+    }
+
+    function extractDateNear(text, keywords, stopWords = []) {
+      const normalized = text.trim();
+      for (const keyword of keywords) {
+        const index = normalized.indexOf(keyword);
+        if (index < 0) continue;
+        let chunk = normalized.slice(index, index + 40);
+        stopWords.forEach((word) => {
+          const stopIndex = chunk.indexOf(word, keyword.length);
+          if (stopIndex > 0) chunk = chunk.slice(0, stopIndex);
+        });
+        const parsed = parseKoreanDate(chunk);
+        if (parsed) return parsed;
+      }
+      return "";
+    }
+
+    function parseScheduleInput(text, item) {
+      const normalized = text.trim();
+      const watchText = normalized.split(/티켓팅|예매/)[0];
+      const preferred = extractDateNear(normalized, ["관람 희망 날짜", "관람 날짜", "관람일", "희망 날짜", "보고 싶은 날짜", "관람"], ["티켓팅", "예매"])
+        || parseKoreanDate(watchText);
+      const watchDate = clampDate(preferred || item.startDate, item.startDate, item.endDate);
+      const ticketOpenDate = extractDateNear(normalized, ["티켓팅 일정", "티켓팅 날짜", "티켓팅일", "티켓팅", "예매 일정", "예매 날짜", "예매일", "예매"], ["관람"]);
+      return { watchDate, ticketOpenDate };
+    }
+
+    function findSchedule(id) {
+      return state.schedule.find((entry) => entry.id === id);
+    }
+
+    function reminderRangeText(schedule) {
+      return `${formatDate(TODAY)}부터 ${formatDate(schedule.ticketOpenDate)}까지`;
+    }
+
+    function parseReminderInput(text, schedule) {
+      const normalized = text.trim();
+      let reminderDate = "";
+      const daysBefore = normalized.match(/(\d{1,2})\s?일\s?전/);
+      const weekBefore = /(일주일|1주일)\s?전/.test(normalized);
+      const sameDay = /(당일|티켓팅\s?날|예매\s?날)/.test(normalized);
+      const fullDate = normalized.match(/(2026)[.\-/년\s]*(\d{1,2})[.\-/월\s]*(\d{1,2})/);
+      const monthDay = normalized.match(/(\d{1,2})\s?월\s?(\d{1,2})\s?일/);
+      if (daysBefore) reminderDate = addDays(schedule.ticketOpenDate, -Number(daysBefore[1]));
+      else if (weekBefore) reminderDate = addDays(schedule.ticketOpenDate, -7);
+      else if (sameDay) reminderDate = schedule.ticketOpenDate;
+      else if (fullDate) reminderDate = `${fullDate[1]}-${fullDate[2].padStart(2, "0")}-${fullDate[3].padStart(2, "0")}`;
+      else if (monthDay) reminderDate = `2026-${monthDay[1].padStart(2, "0")}-${monthDay[2].padStart(2, "0")}`;
+      if (!reminderDate) return null;
+      if (reminderDate < TODAY || reminderDate > schedule.ticketOpenDate) return null;
+      return reminderDate;
+    }
+
+    function startScheduleDialog(id) {
+      const item = cultureDb.find((entry) => entry.id === id);
+      if (!item) return;
+      if (!getSelectedSeat(item) && !isTicketPending(item)) {
+        addMessage("bot", `「${item.title}」 일정을 잡기 전에 예매할 좌석/가격을 먼저 확정해주세요.\n\n좌석별 가격표가 DB에 있으면 장바구니에서 선택할 수 있고, 현재처럼 가격 미수집 상태면 장바구니의 ‘가격 입력’을 눌러 예매처에서 확인한 좌석명과 가격을 입력해주세요.`);
+        return;
+      }
+      state.pendingScheduleId = id;
+      const ticketGuide = isTicketPending(item)
+        ? "\n\n이 작품은 현재 예매 오픈 전/가격 미공개 상태라, 예상 티켓팅일도 같이 적어주면 좋아요. 예: 9월 중순, 티켓팅 8월 20일"
+        : "\n티켓팅 알림도 원하면 “티켓팅 8월 20일”처럼 같이 적어주세요. 티켓팅일을 주면 3일 전 알림으로 캘린더에 넣겠습니다.";
+      addMessage("bot", `「${item.title}」 일정을 잡아볼게요.\n\n관람 희망 날짜나 월을 알려주세요. 예: 9월 중순 / 2026년 9월 12일${ticketGuide}`);
+    }
+
+    function handleScheduleReply(text) {
+      const item = cultureDb.find((entry) => entry.id === state.pendingScheduleId);
+      if (!item) return false;
+      const parsed = parseScheduleInput(text, item);
+      const selectedSeat = getSelectedSeat(item);
+      const schedule = {
+        id: `${item.id}-${Date.now()}`,
+        itemId: item.id,
+        title: item.title,
+        venue: item.venue,
+        url: item.url,
+        seat: selectedSeat?.seat || "예매 오픈 후 선택",
+        price: selectedSeat?.price || 0,
+        watchDate: parsed.watchDate,
+        ticketOpenDate: parsed.ticketOpenDate,
+        reminderDate: ""
+      };
+      state.schedule = state.schedule.filter((entry) => entry.itemId !== item.id).concat(schedule).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
+      state.pendingScheduleId = "";
+      renderSchedule();
+      const schedulePriceText = schedule.seat === "일반" ? formatWon(schedule.price) : `${schedule.seat}${schedule.price ? ` ${formatWon(schedule.price)}` : ""}`;
+      if (schedule.ticketOpenDate) {
+        state.pendingReminderPromptId = schedule.id;
+        addMessage("bot", `좋아요. 「${item.title}」은 ${formatDate(schedule.watchDate)} 관람 일정으로 잡아뒀습니다.\n좌석/가격: ${schedulePriceText}\n티켓팅일은 ${formatDate(schedule.ticketOpenDate)}로 기록해뒀어요.\n\n티켓팅 알림도 설정할까요? 네 / 아니요`);
+      } else {
+        addMessage("bot", `좋아요. 「${item.title}」은 ${formatDate(schedule.watchDate)} 관람 일정으로 잡아뒀습니다.\n좌석/가격: ${schedulePriceText}\n티켓팅일은 아직 비워뒀어요. 알림을 설정하려면 나중에 일정 잡기를 다시 눌러 티켓팅일을 같이 알려주세요.`);
+      }
+      return true;
+    }
+
+    function handleReminderPromptReply(text) {
+      const schedule = findSchedule(state.pendingReminderPromptId);
+      if (!schedule) {
+        state.pendingReminderPromptId = "";
+        return false;
+      }
+      if (isNegative(text)) {
+        state.pendingReminderPromptId = "";
+        addMessage("bot", "알겠어요. 티켓팅 알림은 설정하지 않고 관람 일정만 유지할게요.");
+        return true;
+      }
+      if (!isAffirmative(text)) {
+        addMessage("bot", "알림을 설정하려면 ‘네’, 건너뛰려면 ‘아니요’라고 답해주세요.");
+        return true;
+      }
+      state.pendingReminderPromptId = "";
+      state.pendingReminderInputId = schedule.id;
+      addMessage("bot", `좋아요. 알림일은 ${reminderRangeText(schedule)} 설정할 수 있어요.\n\n원하는 알림 시점을 알려주세요. 예: 3일 전 / 일주일 전 / 2026년 8월 22일 / 티켓팅 당일`);
+      return true;
+    }
+
+    function handleReminderInputReply(text) {
+      const schedule = findSchedule(state.pendingReminderInputId);
+      if (!schedule) {
+        state.pendingReminderInputId = "";
+        return false;
+      }
+      const reminderDate = parseReminderInput(text, schedule);
+      if (!reminderDate) {
+        addMessage("bot", `알림일을 다시 확인해주세요. 이 작품은 ${reminderRangeText(schedule)} 알림을 설정할 수 있어요.\n예: 3일 전 / 2026년 8월 22일`);
+        return true;
+      }
+      schedule.reminderDate = reminderDate;
+      state.pendingReminderInputId = "";
+      renderSchedule();
+      addMessage("bot", `좋아요. 「${schedule.title}」 티켓팅 알림을 ${formatDate(reminderDate)}로 설정했어요.\nICS 저장을 하면 티켓팅 알림 일정이 함께 들어가고, Google Calendar 등록 링크에는 알림일을 메모로 남겨둘 수 있어요.`);
+      return true;
+    }
+
+    function buildGoogleCalendarUrl(entry) {
+      const item = cultureDb.find((target) => target.id === entry.itemId);
+      const details = [`청년문화예술패스 후보`, `작품: ${entry.title}`, `장소: ${entry.venue}`, `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`, entry.ticketOpenDate ? `티켓팅일: ${formatDate(entry.ticketOpenDate)}` : "", entry.reminderDate ? `희망 알림일: ${formatDate(entry.reminderDate)}` : "", item?.benefit || "", item?.url || ""].filter(Boolean).join("\\n");
+      const params = new URLSearchParams({
+        action: "TEMPLATE",
+        text: entry.title,
+        dates: `${googleDate(entry.watchDate)}/${googleDate(addDays(entry.watchDate, 1))}`,
+        location: entry.venue,
+        details
+      });
+      return `https://calendar.google.com/calendar/render?${params.toString()}`;
+    }
+
+    function renderSchedule() {
+      if (!state.schedule.length) {
+        el.scheduleList.innerHTML = `<p class="empty-cart">장바구니 작품의 ‘일정 잡기’를 누르면 1년 관람 계획을 만들 수 있어요.</p>`;
+        return;
+      }
+      el.scheduleList.innerHTML = state.schedule.map((entry) => `
+        <article class="schedule-item">
+          <strong>${formatDate(entry.watchDate)} · ${entry.title}</strong>
+          <span>${entry.venue} · ${entry.seat}${entry.price ? ` ${formatWon(entry.price)}` : ""}${entry.reminderDate ? ` · 티켓팅 알림 ${formatDate(entry.reminderDate)}` : " · 티켓팅 알림 미설정"}</span>
+          <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">Google Calendar에 등록</a>
+        </article>`).join("");
+    }
+
+    function autoScheduleCart() {
+      const items = state.cart.map((id) => cultureDb.find((item) => item.id === id)).filter(Boolean);
+      if (!items.length) {
+        addMessage("bot", "먼저 추천 카드에서 보고 싶은 작품을 장바구니에 담아주세요.");
+        return;
+      }
+      const missingPrice = items.filter((item) => !getSelectedSeat(item) && !isTicketPending(item));
+      if (missingPrice.length) {
+        addMessage("bot", `일정을 자동 배치하기 전에 예매할 좌석/가격을 먼저 확정해주세요.\n\n아직 가격이 확정되지 않은 작품: ${missingPrice.slice(0, 3).map((item) => `「${item.title}」`).join(", ")}${missingPrice.length > 3 ? " 외" : ""}`);
+        return;
+      }
+      state.schedule = items.map((item) => {
+        const selected = getSelectedSeat(item);
+        const start = item.startDate < "2026-01-01" ? "2026-01-01" : item.startDate;
+        const end = item.endDate > "2026-12-31" ? "2026-12-31" : item.endDate;
+        const preferred = start <= end ? start : item.startDate;
+        return {
+          id: `${item.id}-auto`,
+          itemId: item.id,
+          title: item.title,
+          venue: item.venue,
+          url: item.url,
+          seat: selected?.seat || "예매 오픈 후 선택",
+          price: selected?.price || 0,
+          watchDate: preferred,
+          ticketOpenDate: item.ticketOpenDate || "",
+          reminderDate: ""
+        };
+      }).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
+      renderSchedule();
+      addMessage("bot", "장바구니 작품을 공연 가능 기간 안에서 1년 일정 초안으로 배치했습니다.\n\n기간이 긴 작품은 실제로 언제 볼지 사용자의 선호가 중요해서, 각 작품의 ‘일정 잡기’를 눌러 희망 월/날짜를 다시 알려주면 더 정확히 조정할 수 있어요.");
+    }
+
+    function exportIcs() {
+      if (!state.schedule.length) {
+        addMessage("bot", "저장할 일정이 아직 없습니다. 장바구니에서 일정부터 잡아주세요.");
+        return;
+      }
+      const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CulturePass Chatbot MVP//KO"];
+      state.schedule.forEach((entry) => {
+        const item = cultureDb.find((target) => target.id === entry.itemId);
+        lines.push("BEGIN:VEVENT");
+        lines.push(`UID:${entry.id}@culturepass-mvp`);
+        lines.push(`SUMMARY:${entry.title.replaceAll("\n", " ")}`);
+        lines.push(`DTSTART;VALUE=DATE:${googleDate(entry.watchDate)}`);
+        lines.push(`DTEND;VALUE=DATE:${googleDate(addDays(entry.watchDate, 1))}`);
+        lines.push(`LOCATION:${(entry.venue || "").replaceAll("\n", " ")}`);
+        lines.push(`DESCRIPTION:${["청년문화예술패스 관람 후보", `작품: ${entry.title}`, `장소: ${entry.venue}`, `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`, item?.benefit || "", item?.url || ""].filter(Boolean).join("\\n")}`);
+        lines.push("END:VEVENT");
+        if (entry.ticketOpenDate && entry.reminderDate) {
+          const diff = Math.max(0, daysBetween(entry.reminderDate, entry.ticketOpenDate));
+          lines.push("BEGIN:VEVENT");
+          lines.push(`UID:${entry.id}-ticketing@culturepass.local`);
+          lines.push(`DTSTAMP:${googleDate(TODAY)}T000000Z`);
+          lines.push(`DTSTART;VALUE=DATE:${googleDate(entry.ticketOpenDate)}`);
+          lines.push(`DTEND;VALUE=DATE:${googleDate(addDays(entry.ticketOpenDate, 1))}`);
+          lines.push(`SUMMARY:${entry.title} 티켓팅`);
+          lines.push(`DESCRIPTION:${["청년문화예술패스 티켓팅 알림", `작품: ${entry.title}`, `티켓팅일: ${formatDate(entry.ticketOpenDate)}`, `알림일: ${formatDate(entry.reminderDate)}`, item?.url || ""].filter(Boolean).join("\\n")}`);
+          lines.push("BEGIN:VALARM");
+          lines.push(diff ? `TRIGGER:-P${diff}D` : "TRIGGER:PT0M");
+          lines.push("ACTION:DISPLAY");
+          lines.push(`DESCRIPTION:${entry.title} 티켓팅 알림`);
+          lines.push("END:VALARM");
+          lines.push("END:VEVENT");
+        }
+      });
+      lines.push("END:VCALENDAR");
+      const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "culturepass_schedule.ics";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function submitPrompt(text) {
+      if (state.pendingScheduleId) {
+        addMessage("user", text);
+        if (handleScheduleReply(text)) return;
+      }
+      if (state.pendingReminderPromptId) {
+        addMessage("user", text);
+        if (handleReminderPromptReply(text)) return;
+      }
+      if (state.pendingReminderInputId) {
+        addMessage("user", text);
+        if (handleReminderInputReply(text)) return;
+      }
+      if (state.pendingRelated) {
+        addMessage("user", text);
+        if (isNegative(text)) {
+          state.pendingRelated = false;
+          state.relatedSeedId = "";
+          addMessage("bot", "좋아요. 그러면 지금 추천 후보 안에서 고르면 됩니다. 마음에 드는 작품은 장바구니에 담아주세요.");
+          return;
+        }
+        if (isAffirmative(text)) {
+          const seed = cultureDb.find((item) => item.id === state.relatedSeedId) || state.lastResults[0];
+          const related = seed ? getRelatedRecommendations(seed, state.criteria) : [];
+          state.pendingRelated = false;
+          state.relatedSeedId = "";
+          state.lastResults = related;
+          addMessage("bot", buildRelatedAnswer(seed, related), renderRecommendationCards(related));
+          return;
+        }
+        addMessage("bot", "추가 추천을 원하면 ‘네’, 원하지 않으면 ‘아니요’라고 답해주세요.");
+        return;
+      }
+      if (/(스케줄|일정|캘린더|calendar|Calendar)/i.test(text) && state.cart.length) {
+        addMessage("user", text);
+        autoScheduleCart();
+        return;
+      }
+      const criteria = resolveCriteria(inferCriteria(text));
+      const items = getRecommendations(criteria);
+      state.criteria = criteria;
+      state.lastResults = items;
+      state.pendingRelated = Boolean(items.length && criteria.intent !== "list");
+      state.relatedSeedId = items[0]?.id || "";
+      updateConditionStatus();
       addMessage("user", text);
-      elements.chatInput.value = "";
-      runRecommendation(text);
+      addMessage("bot", buildAnswer(criteria, items), renderRecommendationCards(items));
+    }
+
+    function updateConditionStatus() {
+      const c = state.criteria;
+      const parts = ["서울", c.genres.length ? c.genres.join(", ") : "전체 작품 종류", c.dateRange === "fall" ? "가을" : ""].filter(Boolean);
+      el.conditionStatus.textContent = parts.join(" · ");
+    }
+
+    function renderSeatControl(item) {
+      if (Array.isArray(item.priceTiers) && item.priceTiers.length) {
+        const selected = getSelectedSeat(item);
+        return `<select class="seat-select" data-seat-select="${item.id}">
+          <option value="">${hasSinglePrice(item) ? "가격 선택" : "예매할 좌석/가격 선택"}</option>
+          ${item.priceTiers.map((tier) => {
+            const value = `${tier.seat}|${tier.price}`;
+            return `<option value="${value}" ${selected?.seat === tier.seat && selected?.price === tier.price ? "selected" : ""}>${tierLabel(item, tier)}</option>`;
+          }).join("")}
+        </select>`;
+      }
+      const selected = getSelectedSeat(item);
+      return selected
+        ? `<span class="cart-meta">선택 좌석: ${selected.seat} · ${formatWon(selected.price)}</span><button class="mini-btn" type="button" data-manual-price="${item.id}">가격 수정</button>`
+        : `<button class="mini-btn" type="button" data-manual-price="${item.id}">좌석/가격 입력</button>`;
+    }
+
+    function renderCart() {
+      const items = state.cart.map((id) => cultureDb.find((item) => item.id === id)).filter(Boolean);
+      state.used = items.reduce((sum, item) => sum + getSelectedPrice(item), 0);
+      el.cartSubText.textContent = items.length ? `${items.length}개 담김` : "추천 카드에서 작품을 담아 예산을 비교해보세요.";
+      el.cartList.innerHTML = items.length ? items.map((item) => `
+        <article class="cart-item">
+          <div class="cart-top"><span class="cart-name">${item.title}</span><button class="remove-btn" type="button" data-remove="${item.id}" aria-label="삭제">×</button></div>
+          <span class="cart-price">${priceLabel(item)}</span>
+          <span class="cart-meta">${formatDate(item.startDate)} - ${formatDate(item.endDate)} · ${item.region}${isClosingSoon(item) ? " · 마감 임박" : ""}${isTicketPending(item) ? " · 예매 오픈 전" : ""}</span>
+          ${renderSeatControl(item)}
+          <div class="cart-actions"><button class="mini-btn" type="button" data-schedule="${item.id}">일정 잡기</button>${item.url ? `<a class="mini-btn" href="${item.url}" target="_blank" rel="noreferrer">예매처</a>` : ""}</div>
+        </article>`).join("") : `<p class="empty-cart">아직 담긴 작품이 없습니다.</p>`;
+      el.usedBudget.textContent = formatWon(state.used);
+      el.remainingBudget.textContent = formatWon(state.budget - state.used);
+      el.progressBar.style.width = `${Math.min(100, Math.round((state.used / state.budget) * 100))}%`;
+      el.ruleNote.textContent = state.used > state.budget ? "예산을 초과했습니다. 작품을 하나 빼보세요." : `잔여 ${formatWon(state.budget - state.used)} 안에서 더 담을 수 있습니다.`;
+    }
+
+    function init() {
+      addMessage("bot", `안녕하세요. 서울 공연 DB ${cultureDb.length.toLocaleString("ko-KR")}개 작품을 기준으로 추천해드릴게요.\n\n직접 조건을 말해 작품을 추천받을 수도 있고, 위의 AI 오마카세 플래너로 연말까지의 관람 계획을 먼저 받아볼 수도 있어요.`);
+      renderCart();
+      renderSchedule();
+    }
+
+    el.budgetSlider.addEventListener("input", () => {
+      el.budgetValue.textContent = formatWon(Number(el.budgetSlider.value));
+    });
+
+    document.querySelectorAll("#genreChoices .choice").forEach((button) => {
+      button.addEventListener("click", () => button.classList.toggle("selected"));
+    });
+
+    el.startButton.addEventListener("click", () => {
+      state.budget = Number(el.budgetSlider.value);
+      el.omakaseBudget.value = state.budget;
+      const selectedGenres = [...document.querySelectorAll("#genreChoices .choice.selected")].map((button) => button.dataset.genre);
+      state.criteria = { ...emptyCriteria(), region: "서울", genres: selectedGenres, styles: [], budget: state.budget };
+      updateConditionStatus();
+      renderCart();
+      el.overlay.style.display = "none";
+      addMessage("bot", `좋아요. 선호 작품 종류는 ${selectedGenres.length ? selectedGenres.join(", ") : "전체"}로 기억해둘게요.\n\n이제 보고 싶은 시기나 예산 조건을 말해주세요. 예: 가을에 볼만한 연극 추천해줘`);
+    });
+
+    el.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = el.input.value.trim();
+      if (!text) return;
+      el.input.value = "";
+      submitPrompt(text);
     });
 
     document.querySelectorAll("[data-prompt]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const prompt = button.dataset.prompt;
-        addMessage("user", prompt);
-        runRecommendation(prompt);
-      });
+      button.addEventListener("click", () => submitPrompt(button.dataset.prompt));
     });
 
-    elements.cards.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-add-cart]");
+    el.omakaseButton.addEventListener("click", makeOmakasePlan);
+
+    el.omakaseResult.addEventListener("click", (event) => {
+      const addButton = event.target.closest("[data-omakase-add]");
+      if (addButton) {
+        addOmakaseItemToCart(addButton.dataset.omakaseAdd);
+        return;
+      }
+      const scheduleButton = event.target.closest("[data-omakase-schedule]");
+      if (scheduleButton) {
+        addOmakaseItemToSchedule(scheduleButton.dataset.omakaseSchedule, scheduleButton.dataset.watchDate);
+      }
+    });
+
+    el.messages.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-add]");
       if (!button) return;
-      const id = button.dataset.addCart;
-      if (!cart.includes(id)) cart.push(id);
+      const id = button.dataset.add;
+      if (!state.cart.includes(id)) state.cart.push(id);
       renderCart();
-      renderCards(currentRecommendations);
+      button.textContent = "담김";
+      button.classList.add("added");
     });
 
-    elements.cartItems.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-remove-cart]");
+    el.cartList.addEventListener("click", (event) => {
+      const manualButton = event.target.closest("[data-manual-price]");
+      if (manualButton) {
+        const id = manualButton.dataset.manualPrice;
+        const item = cultureDb.find((entry) => entry.id === id);
+        const seat = prompt("예매할 좌석명을 입력해주세요. 예: R석, S석, 일반석");
+        if (!seat) return;
+        const priceText = prompt("해당 좌석의 실제 예매 가격을 숫자로 입력해주세요. 예: 70000");
+        const price = Number((priceText || "").replace(/[^0-9]/g, ""));
+        if (!price) {
+          addMessage("bot", "가격이 입력되지 않아 좌석 선택을 저장하지 않았어요.");
+          return;
+        }
+        state.selectedSeats[id] = { seat: seat.trim(), price };
+        renderCart();
+        addMessage("bot", `「${item?.title || "선택 작품"}」의 예매 좌석을 ${seat.trim()} ${formatWon(price)}로 확인했습니다. 이 금액을 예산 계산과 캘린더 메모에 반영할게요.`);
+        return;
+      }
+      const scheduleButton = event.target.closest("[data-schedule]");
+      if (scheduleButton) {
+        startScheduleDialog(scheduleButton.dataset.schedule);
+        return;
+      }
+      const button = event.target.closest("[data-remove]");
       if (!button) return;
-      cart = cart.filter((id) => id !== button.dataset.removeCart);
+      state.cart = state.cart.filter((id) => id !== button.dataset.remove);
+      delete state.selectedSeats[button.dataset.remove];
+      state.schedule = state.schedule.filter((entry) => entry.itemId !== button.dataset.remove);
       renderCart();
-      renderCards(currentRecommendations);
+      renderSchedule();
     });
 
-    elements.clearCart.addEventListener("click", () => {
-      cart = [];
+    el.cartList.addEventListener("change", (event) => {
+      const select = event.target.closest("[data-seat-select]");
+      if (!select) return;
+      const id = select.dataset.seatSelect;
+      if (!select.value) delete state.selectedSeats[id];
+      else {
+        const [seat, price] = select.value.split("|");
+        state.selectedSeats[id] = { seat, price: Number(price) };
+      }
       renderCart();
-      renderCards(currentRecommendations);
+      renderSchedule();
     });
 
-    elements.prevPage.addEventListener("click", () => {
-      currentPage -= 1;
-      renderCards(currentRecommendations);
-    });
+    el.autoScheduleButton.addEventListener("click", autoScheduleCart);
+    el.exportIcsButton.addEventListener("click", exportIcs);
 
-    elements.nextPage.addEventListener("click", () => {
-      currentPage += 1;
-      renderCards(currentRecommendations);
-    });
-
-    elements.refreshResults.addEventListener("click", () => {
-      const items = getRecommendations(lastCriteria);
-      currentPage = 1;
-      updateResultHint(lastCriteria);
-      renderCards(items);
-      renderCart();
-    });
-
-    addMessage("bot", "안녕하세요. 보고 싶은 지역, 장르, 분위기, 예산을 편하게 말해주세요.\n\n예: 서울에서 가볍게 볼 연극 추천해줘 / 20만원 안에서 뮤지컬이랑 전시 같이 보고 싶어");
-    renderInitialEmptyState();
-    renderCart();
+    init();
   </script>
 </body>
 </html>
