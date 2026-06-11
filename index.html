@@ -1195,6 +1195,7 @@
           <div class="scheduler-title">
             <h3>📅 월별 관람 계획</h3>
           </div>
+          <p class="rule-note">실제 관람일은 예매 시 사용자가 선택하며, 본 서비스는 월 단위 관람 계획을 추천합니다.</p>
           <div class="scheduler-actions">
             <button class="mini-btn" type="button" id="autoScheduleButton">월별 계획 반영</button>
             <button class="mini-btn" type="button" id="exportIcsButton">계획 ICS 저장</button>
@@ -1595,6 +1596,10 @@
       return Number(entry?.scheduledMonth) || Number(entry?.month) || monthOfDate(entry?.watchDate);
     }
 
+    function monthLabel(month) {
+      return month ? `${month}월` : "추천 월";
+    }
+
     function rawMonthRange(month) {
       const padded = String(month).padStart(2, "0");
       const last = new Date(CURRENT_YEAR, month, 0).getDate();
@@ -1610,7 +1615,8 @@
     }
 
     function calendarTitle(entry) {
-      return `[청년문화패스] ${shortTitle(entry.title)}`;
+      const month = scheduledMonthOf(entry);
+      return month ? `[청년문화예술패스] ${month}월 관람 추천` : `[청년문화예술패스] 관람 추천 메모`;
     }
 
     function getScheduledDateForCalendar(entry, item) {
@@ -1630,18 +1636,16 @@
 
     function calendarDetails(entry, item) {
       const scheduledMonth = scheduledMonthOf(entry);
-      const date = getScheduledDateForCalendar(entry, item);
       return [
-        `전체 작품명: ${entry.title}`,
+        `추천 작품명: ${entry.title}`,
+        scheduledMonth ? `추천 월: ${scheduledMonth}월` : "",
         `장소: ${entry.venue || item?.venue || "미정"}`,
         `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`.trim(),
         entry.reason ? `추천 이유: ${entry.reason}` : "",
-        scheduledMonth ? `AI 오마카세 추천 배치 월: ${scheduledMonth}월` : "",
         item?.startDate && item?.endDate ? `작품 기간: ${formatDate(item.startDate)} ~ ${formatDate(item.endDate)}` : "",
-        `월별 계획 기준일: ${formatDate(date)}`,
         item?.benefit ? `혜택: ${item.benefit}` : "",
         item?.url ? `예매 링크: ${item.url}` : "",
-        "이 일정은 확정 관람일이 아니라 AI 오마카세의 월별 관람 계획 메모입니다. 실제 관람일과 회차는 예매처에서 최종 확정해주세요."
+        "안내: 이 항목은 확정 공연 일정이 아니라 월 단위 관람 계획 메모입니다. 실제 관람일과 회차는 예매 시 사용자가 선택해야 합니다."
       ].filter(Boolean).join("\n");
     }
 
@@ -2176,7 +2180,7 @@
         0.25 * budgetScore +
         0.20 * typeScore +
         0.20 * moodScore +
-        0.15 * tendencyScore +
+        (15 / 100) * tendencyScore +
         0.10 * scheduleScore +
         0.10 * diversityScore
       );
@@ -2373,15 +2377,17 @@
       const hydratedSchedule = state.schedule
         .map((entry) => {
           const item = cultureDb.find((target) => target.id === entry.itemId);
-          const scheduledDate = getScheduledDateForCalendar(entry, item);
-          return { ...entry, item, scheduledDate };
+          const month = scheduledMonthOf(entry);
+          return { ...entry, item, month };
         })
-        .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+        .sort((a, b) => (a.month || 99) - (b.month || 99));
       el.scheduleList.innerHTML = hydratedSchedule.map((entry) => `
         <article class="schedule-item">
-          <strong>${formatDate(entry.scheduledDate)} · ${entry.title}</strong>
+          <strong>${monthLabel(entry.month)} 관람 추천</strong>
+          <span>${entry.title}</span>
+          <span>${entry.item?.startDate && entry.item?.endDate ? `공연 기간: ${formatDate(entry.item.startDate)} ~ ${formatDate(entry.item.endDate)}` : ""}</span>
           <span>${entry.venue} · ${entry.seat}${entry.price ? ` ${formatWon(entry.price)}` : ""}</span>
-          <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">월별 계획 Google Calendar 등록</a>
+          <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">추천 월 캘린더에 저장</a>
         </article>`).join("");
     }
 
@@ -2418,7 +2424,7 @@
       }).sort((a, b) => getScheduledDateForCalendar(a, cultureDb.find((item) => item.id === a.itemId)).localeCompare(getScheduledDateForCalendar(b, cultureDb.find((item) => item.id === b.itemId))));
       renderSchedule();
       saveAppState();
-      addMessage("bot", "장바구니 작품을 월 단위 관람 계획으로 정리했습니다.\n\n이 날짜는 확정 관람일이 아니라 계획 기준일입니다. 실제 관람일과 회차는 예매처에서 확정하고, 티켓팅 준비 알림은 장바구니 카드의 ‘티켓팅 알림’ 버튼에서 직접 설정해주세요.");
+      addMessage("bot", "장바구니 작품을 월 단위 관람 계획으로 정리했습니다.\n\n이 계획은 확정 관람일이 아니라 추천 월 기준의 메모입니다. 실제 관람일과 회차는 예매처에서 확정하고, 티켓팅 준비 알림은 장바구니 카드의 ‘티켓팅 알림’ 버튼에서 직접 설정해주세요.");
     }
 
     function exportIcs() {
