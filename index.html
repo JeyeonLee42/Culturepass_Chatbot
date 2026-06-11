@@ -1428,13 +1428,8 @@
     function getScheduledDateForCalendar(entry, item) {
       const month = scheduledMonthOf(entry);
       if (month) {
-        if (entry?.watchDate && monthOfDate(entry.watchDate) === month) return entry.watchDate;
         const range = rawMonthRange(month);
-        if (item?.startDate && item?.endDate && item.startDate <= range.end && item.endDate >= range.start) {
-          const validStart = item.startDate > range.start ? item.startDate : range.start;
-          const validEnd = item.endDate < range.end ? item.endDate : range.end;
-          return clampDate(range.middle, validStart, validEnd);
-        }
+        if (item?.startDate && item?.endDate && item.startDate <= range.end && item.endDate >= range.start) return range.middle;
         return range.middle;
       }
       if (entry?.watchDate) return entry.watchDate;
@@ -2201,9 +2196,16 @@
         el.scheduleList.innerHTML = `<p class="empty-cart">장바구니 작품의 ‘일정 잡기’를 누르면 1년 관람 계획을 만들 수 있어요.</p>`;
         return;
       }
-      el.scheduleList.innerHTML = state.schedule.map((entry) => `
+      const hydratedSchedule = state.schedule
+        .map((entry) => {
+          const item = cultureDb.find((target) => target.id === entry.itemId);
+          const scheduledDate = getScheduledDateForCalendar(entry, item);
+          return { ...entry, item, scheduledDate };
+        })
+        .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+      el.scheduleList.innerHTML = hydratedSchedule.map((entry) => `
         <article class="schedule-item">
-          <strong>${formatDate(entry.watchDate)} · ${entry.title}</strong>
+          <strong>${formatDate(entry.scheduledDate)} · ${entry.title}</strong>
           <span>${entry.venue} · ${entry.seat}${entry.price ? ` ${formatWon(entry.price)}` : ""}${entry.reminderDate ? ` · 티켓팅 알림 ${formatDate(entry.reminderDate)}` : " · 티켓팅 알림 미설정"}</span>
           <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">Google Calendar에 등록</a>
         </article>`).join("");
@@ -2222,9 +2224,9 @@
       }
       state.schedule = items.map((item) => {
         const selected = getSelectedSeat(item);
-        const start = item.startDate < TODAY ? TODAY : item.startDate;
-        const end = item.endDate > `${CURRENT_YEAR}-12-31` ? `${CURRENT_YEAR}-12-31` : item.endDate;
-        const preferred = start <= end ? start : item.startDate;
+        const planEntry = state.omakasePlan.find((entry) => entry.itemId === item.id);
+        const scheduledMonth = Number(planEntry?.scheduledMonth) || Number(planEntry?.month) || monthOfDate(item.startDate < TODAY ? TODAY : item.startDate);
+        const scheduledDate = getScheduledDateForCalendar({ scheduledMonth }, item);
         return {
           id: `${item.id}-auto`,
           itemId: item.id,
@@ -2233,12 +2235,13 @@
           url: item.url,
           seat: selected?.seat || "예매 오픈 후 선택",
           price: selected?.price || 0,
-          watchDate: preferred,
-          scheduledMonth: monthOfDate(preferred),
+          scheduledMonth,
+          watchDate: scheduledDate,
           ticketOpenDate: item.ticketOpenDate || "",
-          reminderDate: ""
+          reminderDate: "",
+          reason: planEntry?.reason || ""
         };
-      }).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
+      }).sort((a, b) => getScheduledDateForCalendar(a, cultureDb.find((item) => item.id === a.itemId)).localeCompare(getScheduledDateForCalendar(b, cultureDb.find((item) => item.id === b.itemId))));
       renderSchedule();
       saveAppState();
       addMessage("bot", "장바구니 작품을 공연 가능 기간 안에서 1년 일정 초안으로 배치했습니다.\n\n기간이 긴 작품은 실제로 언제 볼지 사용자의 선호가 중요해서, 각 작품의 ‘일정 잡기’를 눌러 희망 월/날짜를 다시 알려주면 더 정확히 조정할 수 있어요.");
