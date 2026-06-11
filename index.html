@@ -1771,6 +1771,38 @@
       return Math.ceil((new Date(end) - new Date(start)) / 86400000);
     }
 
+    function getDurationDays(item) {
+      if (!item?.startDate || !item?.endDate) return null;
+      const start = new Date(`${item.startDate}T00:00:00+09:00`);
+      const end = new Date(`${item.endDate}T00:00:00+09:00`);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+      return Math.round((end - start) / 86400000) + 1;
+    }
+
+    function monthFromDate(value) {
+      if (!value || value.length < 7) return null;
+      const month = Number(value.slice(5, 7));
+      return Number.isInteger(month) && month >= 1 && month <= 12 ? month : null;
+    }
+
+    function isShortRun(item) {
+      const days = getDurationDays(item);
+      return days !== null && days <= 90;
+    }
+
+    function isLongRun(item) {
+      const days = getDurationDays(item);
+      return days !== null && days > 90;
+    }
+
+    function isSameMonthRun(item, month) {
+      return monthFromDate(item.startDate) === month && monthFromDate(item.endDate) === month;
+    }
+
+    function startsOrEndsInMonth(item, month) {
+      return monthFromDate(item.startDate) === month || monthFromDate(item.endDate) === month;
+    }
+
     function isTicketPending(item) {
       return item.ticketStatus && item.ticketStatus !== "예매 가능";
     }
@@ -1888,6 +1920,77 @@
         clearsGenreAll,
         hasExplicitFilter: Boolean(genres.length || actors.length || budgetMatch || inferDateRange(normalized))
       };
+    }
+
+    async function parseConditionsWithLLM(text) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 8000);
+      try {
+        const response = await fetch("/.netlify/functions/llm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userMessage: text }),
+          signal: controller.signal
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok || !data.conditions) {
+          throw new Error(data.message || "LLM condition parser failed");
+        }
+        return data.conditions;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    function dateRangeFromPreferredMonths(months) {
+      const values = Array.isArray(months) ? months.map(Number).filter(Boolean) : [];
+      if ([9, 10, 11].every((month) => values.includes(month))) return "fall";
+      if ([6, 7, 8].every((month) => values.includes(month))) return "summer";
+      return "";
+    }
+
+    function llmConditionsToRawCriteria(text, conditions) {
+      const fallback = inferCriteria(text);
+      const genres = Array.isArray(conditions.preferredTypes)
+        ? conditions.preferredTypes.filter((type) => ["연극", "뮤지컬", "전시", "클래식/오페라", "콘서트", "국악", "발레/무용"].includes(type))
+        : [];
+      const budget = Number(conditions.budget);
+      const dateRange = dateRangeFromPreferredMonths(conditions.preferredMonths) || fallback.dateRange;
+      return {
+        ...fallback,
+        genres: genres.length ? genres : fallback.genres,
+        clearGenres: [],
+        budget: Number.isFinite(budget) && budget > 0 ? budget : fallback.budget,
+        hasBudget: Number.isFinite(budget) && budget > 0 ? true : fallback.hasBudget,
+        dateRange,
+        hasExplicitFilter: Boolean(
+          genres.length ||
+          (Number.isFinite(budget) && budget > 0) ||
+          dateRange ||
+          conditions.mood ||
+          conditions.frequency ||
+          conditions.tendency ||
+          conditions.avoidMonths?.length ||
+          conditions.preferredMonths?.length ||
+          conditions.avoidExamPeriod ||
+          conditions.avoidStartSemester ||
+          conditions.avoidEndSemester ||
+          conditions.avoidWeekday ||
+          fallback.hasExplicitFilter
+        )
+      };
+    }
+
+    function formatLLMConditionSummary(conditions) {
+      const lines = ["입력하신 내용을 바탕으로 조건을 해석했습니다."];
+      if (conditions.budget) lines.push(`예산: ${formatWon(conditions.budget)}`);
+      if (conditions.preferredTypes?.length) lines.push(`분야: ${conditions.preferredTypes.join(", ")}`);
+      if (conditions.mood) lines.push(`분위기: ${conditions.mood}`);
+      if (conditions.preferredMonths?.length) lines.push(`선호 시기: ${conditions.preferredMonths.map((month) => `${month}월`).join(", ")}`);
+      if (conditions.avoidMonths?.length) lines.push(`회피 월: ${conditions.avoidMonths.map((month) => `${month}월`).join(", ")}`);
+      if (conditions.frequency) lines.push(`관람 빈도: ${conditions.frequency}`);
+      if (conditions.tendency) lines.push(`관람 성향: ${conditions.tendency}`);
+      return lines.join("\n");
     }
 
     function resolveCriteria(raw) {
@@ -2185,6 +2288,9 @@
     function omakaseReason(item, config, month, scoreInfo) {
       const reasons = [];
       const moodTag = inferMoodTags(item).find((tag) => tag.key === config.mood);
+      if (isShortRun(item) && isSameMonthRun(item, month)) reasons.push("해당 월에만 관람 가능한 단기 공연으로 월별 계획에 우선 배치했습니다");
+      else if (isShortRun(item)) reasons.push("관람 가능 기간이 짧아 월별 계획에서 놓치지 않도록 우선 검토했습니다");
+      else if (isLongRun(item)) reasons.push("장기 진행 작품이지만 예산과 분야 조건에 적합해 월별 계획에 포함했습니다");
       if (config.genres.includes(item.genre)) reasons.push(`선호 분야인 ${item.genre}에 맞춰 배치했습니다`);
       if (moodTag) reasons.push(`'${moodTag.matchedKeywords.slice(0, 2).join(", ")}' 키워드를 기반으로 ${moodTag.label}으로 추정했습니다`);
       if (scoreInfo.budgetScore >= 80) reasons.push("남은 지원금 안에서 부담 없이 배치할 수 있습니다");
@@ -2211,9 +2317,18 @@
       })();
       const scheduleScore = (() => {
         let score = 78;
+        const durationDays = getDurationDays(item);
         if (config.avoid.softAvoidMonths.includes(month)) score -= 35;
         if (config.frequency === "vacation" && [1, 2, 7, 8].includes(month)) score += 18;
-        if (item.startDate.slice(5, 7) === String(month).padStart(2, "0")) score += 7;
+        if (durationDays !== null && durationDays <= 7) score += 12;
+        else if (durationDays !== null && durationDays <= 30) score += 8;
+        else if (durationDays !== null && durationDays <= 90) score += 4;
+        else if (durationDays !== null && durationDays > 90) score -= 3;
+        if (isSameMonthRun(item, month)) score += 15;
+        else {
+          if (monthFromDate(item.startDate) === month) score += 10;
+          if (monthFromDate(item.endDate) === month) score += 8;
+        }
         return Math.max(0, Math.min(100, score));
       })();
       const diversityScore = usedGenres.has(item.genre) ? 45 : 95;
@@ -2227,6 +2342,33 @@
       );
       const scoreBreakdown = { budgetScore: Math.round(budgetScore), typeScore, moodScore, tendencyScore, scheduleScore, diversityScore, totalScore };
       return { ...item, score: totalScore, totalScore, scoreBreakdown, moodHits, inferredMoodTags: inferMoodTags(item) };
+    }
+
+    function compareOmakaseCandidates(a, b, month) {
+      const scoreGap = (b.totalScore || b.score || 0) - (a.totalScore || a.score || 0);
+      if (Math.abs(scoreGap) > 3) return scoreGap;
+      const sameMonthGap = Number(isSameMonthRun(b, month)) - Number(isSameMonthRun(a, month));
+      if (sameMonthGap) return sameMonthGap;
+      const aDuration = getDurationDays(a) ?? Number.MAX_SAFE_INTEGER;
+      const bDuration = getDurationDays(b) ?? Number.MAX_SAFE_INTEGER;
+      if (aDuration !== bDuration) return aDuration - bDuration;
+      const boundaryGap = Number(startsOrEndsInMonth(b, month)) - Number(startsOrEndsInMonth(a, month));
+      if (boundaryGap) return boundaryGap;
+      const aPrice = getMinPrice(a) ?? Number.MAX_SAFE_INTEGER;
+      const bPrice = getMinPrice(b) ?? Number.MAX_SAFE_INTEGER;
+      if (aPrice !== bPrice) return aPrice - bPrice;
+      return scoreGap;
+    }
+
+    function pickOmakaseCandidate(candidates, month, longRunCount, targetCount) {
+      if (!candidates.length) return null;
+      const sorted = dedupeRecommendations(candidates).sort((a, b) => compareOmakaseCandidates(a, b, month));
+      const longRunLimit = targetCount <= 3 ? 1 : 2;
+      const hasShortCandidate = sorted.some((item) => !isLongRun(item));
+      if (hasShortCandidate && longRunCount >= longRunLimit) {
+        return sorted.find((item) => !isLongRun(item)) || sorted[0];
+      }
+      return sorted[0];
     }
 
     function makeOmakasePlan() {
@@ -2248,6 +2390,7 @@
       const usedIds = new Set();
       const usedGenres = new Set();
       let spent = 0;
+      let longRunCount = 0;
       const plan = [];
       monthsToTry.forEach((month) => {
         if (plan.length >= targetCount) return;
@@ -2262,13 +2405,14 @@
             return price === null || spent + price <= budget;
           })
           .map((item) => scoreOmakaseItem(item, config, month, usedGenres))
-          .sort((a, b) => b.score - a.score);
-        const selected = dedupeRecommendations(candidates)[0];
+          .sort((a, b) => compareOmakaseCandidates(a, b, month));
+        const selected = pickOmakaseCandidate(candidates, month, longRunCount, targetCount);
         if (!selected) return;
         const price = getMinPrice(selected) || 0;
         spent += price;
         usedIds.add(duplicateKey(selected));
         usedGenres.add(selected.genre);
+        if (isLongRun(selected)) longRunCount += 1;
         plan.push({
           itemId: selected.id,
           month,
@@ -2499,7 +2643,7 @@
       URL.revokeObjectURL(link.href);
     }
 
-    function submitPrompt(text) {
+    async function submitPrompt(text) {
       if (state.pendingRelated) {
         addMessage("user", text);
         if (isNegative(text)) {
@@ -2525,14 +2669,22 @@
         autoScheduleCart();
         return;
       }
-      const criteria = resolveCriteria(inferCriteria(text));
+      addMessage("user", text);
+      let rawCriteria = inferCriteria(text);
+      try {
+        const llmConditions = await parseConditionsWithLLM(text);
+        rawCriteria = llmConditionsToRawCriteria(text, llmConditions);
+        addMessage("bot", formatLLMConditionSummary(llmConditions));
+      } catch (error) {
+        addMessage("bot", "AI 조건 해석에 실패하여 기본 규칙 기반 추천으로 진행합니다.");
+      }
+      const criteria = resolveCriteria(rawCriteria);
       const items = getRecommendations(criteria);
       state.criteria = criteria;
       state.lastResults = items;
       state.pendingRelated = Boolean(items.length && criteria.intent !== "list");
       state.relatedSeedId = items[0]?.id || "";
       updateConditionStatus();
-      addMessage("user", text);
       addMessage("bot", buildAnswer(criteria, items), renderRecommendationCards(items));
     }
 
