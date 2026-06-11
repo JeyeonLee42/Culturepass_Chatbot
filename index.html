@@ -620,6 +620,57 @@
       outline: 0;
     }
 
+    .omakase-budget-field {
+      grid-column: span 2;
+    }
+
+    .omakase-budget-field .slider-row {
+      grid-template-columns: minmax(0, 1fr) 94px;
+    }
+
+    .omakase-avoid-checks {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .omakase-avoid-checks label {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: var(--white);
+      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .month-btn {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--text-sub);
+      padding: 7px 0;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .month-btn.selected {
+      border-color: var(--purple);
+      color: var(--purple);
+      background: var(--purple-light);
+    }
+
+    .month-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
     .omakase-checks {
       grid-column: 1 / -1;
       display: flex;
@@ -923,33 +974,6 @@
   </style>
 </head>
 <body>
-  <div class="overlay" id="overlay">
-    <section class="modal" aria-label="초기 설정">
-      <h1>청년문화예술패스 추천 챗봇</h1>
-      <p>잔여 지원금과 선호 작품 종류를 알려주면, 서울 공연 DB 기반으로 작품 후보와 연간 관람 일정을 추천합니다.</p>
-      <div class="field">
-        <label for="budgetSlider">잔여 지원금</label>
-        <div class="slider-row">
-          <input id="budgetSlider" type="range" min="50000" max="200000" step="10000" value="200000" />
-          <span class="slider-value" id="budgetValue">200,000원</span>
-        </div>
-      </div>
-      <div class="field">
-        <label>선호 작품 종류</label>
-        <div class="button-grid" id="genreChoices">
-          <button class="choice selected" type="button" data-genre="뮤지컬">뮤지컬</button>
-          <button class="choice" type="button" data-genre="연극">연극</button>
-          <button class="choice selected" type="button" data-genre="전시">전시</button>
-          <button class="choice" type="button" data-genre="클래식/오페라">클래식/오페라</button>
-          <button class="choice" type="button" data-genre="콘서트">콘서트</button>
-          <button class="choice" type="button" data-genre="국악">국악</button>
-          <button class="choice" type="button" data-genre="발레/무용">발레/무용</button>
-        </div>
-      </div>
-      <button class="start-btn" type="button" id="startButton">시작하기</button>
-    </section>
-  </div>
-
   <div class="app">
     <header class="topbar">
       <div class="brand">
@@ -973,8 +997,12 @@
             <button class="mini-btn" type="button" id="omakaseButton">AI 오마카세 플랜 만들기</button>
           </div>
           <div class="omakase-form">
-            <div class="omakase-field">
+            <div class="omakase-field omakase-budget-field">
               <label for="omakaseBudget">남은 지원금</label>
+              <div class="slider-row">
+                <input id="omakaseBudgetSlider" type="range" min="0" max="200000" step="10000" value="200000" />
+                <span class="slider-value" id="omakaseBudgetValue">200,000원</span>
+              </div>
               <input id="omakaseBudget" type="number" min="10000" max="200000" step="10000" value="200000" />
             </div>
             <div class="omakase-field">
@@ -1007,16 +1035,28 @@
               </select>
             </div>
             <div class="omakase-field">
-              <label for="omakaseAvoid">피하고 싶은 시기</label>
-              <select id="omakaseAvoid">
-                <option value="">없음</option>
-                <option value="exam">시험기간</option>
-                <option value="month">특정 월</option>
-              </select>
+              <label>피하고 싶은 시기</label>
+              <div class="omakase-avoid-checks">
+                <label><input id="omakaseAvoidExam" type="checkbox" />시험기간 회피</label>
+                <label><input id="omakaseAvoidMonthToggle" type="checkbox" />특정 월 회피</label>
+              </div>
             </div>
             <div class="omakase-field">
-              <label for="omakaseAvoidMonth">특정 월</label>
-              <input id="omakaseAvoidMonth" type="text" placeholder="예: 10월" />
+              <label>회피할 월</label>
+              <div class="month-grid" id="omakaseAvoidMonths">
+                <button class="month-btn" type="button" data-month="1" disabled>1월</button>
+                <button class="month-btn" type="button" data-month="2" disabled>2월</button>
+                <button class="month-btn" type="button" data-month="3" disabled>3월</button>
+                <button class="month-btn" type="button" data-month="4" disabled>4월</button>
+                <button class="month-btn" type="button" data-month="5" disabled>5월</button>
+                <button class="month-btn" type="button" data-month="6" disabled>6월</button>
+                <button class="month-btn" type="button" data-month="7" disabled>7월</button>
+                <button class="month-btn" type="button" data-month="8" disabled>8월</button>
+                <button class="month-btn" type="button" data-month="9" disabled>9월</button>
+                <button class="month-btn" type="button" data-month="10" disabled>10월</button>
+                <button class="month-btn" type="button" data-month="11" disabled>11월</button>
+                <button class="month-btn" type="button" data-month="12" disabled>12월</button>
+              </div>
             </div>
             <div class="omakase-checks" aria-label="선호 분야">
               <label><input type="checkbox" name="omakaseGenre" value="연극" />연극</label>
@@ -1114,10 +1154,6 @@
     };
 
     const el = {
-      overlay: document.querySelector("#overlay"),
-      budgetSlider: document.querySelector("#budgetSlider"),
-      budgetValue: document.querySelector("#budgetValue"),
-      startButton: document.querySelector("#startButton"),
       messages: document.querySelector("#messages"),
       form: document.querySelector("#chatForm"),
       input: document.querySelector("#chatInput"),
@@ -1133,11 +1169,14 @@
       ruleNote: document.querySelector("#ruleNote"),
       omakaseButton: document.querySelector("#omakaseButton"),
       omakaseBudget: document.querySelector("#omakaseBudget"),
+      omakaseBudgetSlider: document.querySelector("#omakaseBudgetSlider"),
+      omakaseBudgetValue: document.querySelector("#omakaseBudgetValue"),
       omakasePersona: document.querySelector("#omakasePersona"),
       omakaseFrequency: document.querySelector("#omakaseFrequency"),
       omakaseMood: document.querySelector("#omakaseMood"),
-      omakaseAvoid: document.querySelector("#omakaseAvoid"),
-      omakaseAvoidMonth: document.querySelector("#omakaseAvoidMonth"),
+      omakaseAvoidExam: document.querySelector("#omakaseAvoidExam"),
+      omakaseAvoidMonthToggle: document.querySelector("#omakaseAvoidMonthToggle"),
+      omakaseAvoidMonths: document.querySelector("#omakaseAvoidMonths"),
       omakaseResult: document.querySelector("#omakaseResult"),
       floatingChat: document.querySelector("#floatingChat"),
       chatToggle: document.querySelector("#chatToggle"),
@@ -1514,12 +1553,30 @@
     }
 
     function avoidMonthsFromInput() {
-      const avoid = el.omakaseAvoid.value;
-      if (avoid === "exam") return [6, 10, 11];
-      if (avoid !== "month") return [];
-      return [...el.omakaseAvoidMonth.value.matchAll(/(\d{1,2})\s?월?/g)]
-        .map((match) => Number(match[1]))
-        .filter((month) => month >= 1 && month <= 12);
+      const months = new Set();
+      if (el.omakaseAvoidExam.checked) [4, 6, 10, 11].forEach((month) => months.add(month));
+      if (el.omakaseAvoidMonthToggle.checked) {
+        el.omakaseAvoidMonths.querySelectorAll(".month-btn.selected").forEach((button) => months.add(Number(button.dataset.month)));
+      }
+      return [...months].filter((month) => month >= 1 && month <= 12);
+    }
+
+    function syncOmakaseBudget(value) {
+      const normalized = Math.min(200000, Math.max(0, Number(value) || 0));
+      el.omakaseBudget.value = normalized;
+      el.omakaseBudgetSlider.value = normalized;
+      el.omakaseBudgetValue.textContent = formatWon(normalized);
+      state.budget = normalized;
+      state.criteria.budget = normalized;
+      renderCart();
+    }
+
+    function updateAvoidMonthButtons() {
+      const enabled = el.omakaseAvoidMonthToggle.checked;
+      el.omakaseAvoidMonths.querySelectorAll(".month-btn").forEach((button) => {
+        button.disabled = !enabled;
+        if (!enabled) button.classList.remove("selected");
+      });
     }
 
     const moodRules = {
@@ -1570,7 +1627,7 @@
     }
 
     function makeOmakasePlan() {
-      const budget = Math.max(10000, Number(el.omakaseBudget.value) || state.budget);
+      const budget = Math.max(0, Number(el.omakaseBudget.value) || state.budget);
       state.budget = budget;
       state.criteria.budget = budget;
       const persona = el.omakasePersona.value;
@@ -2025,33 +2082,26 @@
         </article>`).join("") : `<p class="empty-cart">아직 담긴 작품이 없습니다.</p>`;
       el.usedBudget.textContent = formatWon(state.used);
       el.remainingBudget.textContent = formatWon(state.budget - state.used);
-      el.progressBar.style.width = `${Math.min(100, Math.round((state.used / state.budget) * 100))}%`;
+      el.progressBar.style.width = state.budget ? `${Math.min(100, Math.round((state.used / state.budget) * 100))}%` : "0%";
       el.ruleNote.textContent = state.used > state.budget ? "예산을 초과했습니다. 작품을 하나 빼보세요." : `잔여 ${formatWon(state.budget - state.used)} 안에서 더 담을 수 있습니다.`;
     }
 
     function init() {
       addMessage("bot", `안녕하세요. 서울 공연 DB ${cultureDb.length.toLocaleString("ko-KR")}개 작품을 기준으로 추천해드릴게요.\n\n직접 조건을 말해 작품을 추천받을 수도 있고, 위의 AI 오마카세 플래너로 연말까지의 관람 계획을 먼저 받아볼 수도 있어요.`);
+      syncOmakaseBudget(el.omakaseBudget.value);
+      updateAvoidMonthButtons();
+      updateConditionStatus();
       renderCart();
       renderSchedule();
     }
 
-    el.budgetSlider.addEventListener("input", () => {
-      el.budgetValue.textContent = formatWon(Number(el.budgetSlider.value));
-    });
-
-    document.querySelectorAll("#genreChoices .choice").forEach((button) => {
-      button.addEventListener("click", () => button.classList.toggle("selected"));
-    });
-
-    el.startButton.addEventListener("click", () => {
-      state.budget = Number(el.budgetSlider.value);
-      el.omakaseBudget.value = state.budget;
-      const selectedGenres = [...document.querySelectorAll("#genreChoices .choice.selected")].map((button) => button.dataset.genre);
-      state.criteria = { ...emptyCriteria(), region: "서울", genres: selectedGenres, styles: [], budget: state.budget };
-      updateConditionStatus();
-      renderCart();
-      el.overlay.style.display = "none";
-      addMessage("bot", `좋아요. 선호 작품 종류는 ${selectedGenres.length ? selectedGenres.join(", ") : "전체"}로 기억해둘게요.\n\n이제 보고 싶은 시기나 예산 조건을 말해주세요. 예: 가을에 볼만한 연극 추천해줘`);
+    el.omakaseBudgetSlider.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudgetSlider.value));
+    el.omakaseBudget.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudget.value));
+    el.omakaseAvoidMonthToggle.addEventListener("change", updateAvoidMonthButtons);
+    el.omakaseAvoidMonths.addEventListener("click", (event) => {
+      const button = event.target.closest(".month-btn");
+      if (!button || button.disabled) return;
+      button.classList.toggle("selected");
     });
 
     el.form.addEventListener("submit", (event) => {
