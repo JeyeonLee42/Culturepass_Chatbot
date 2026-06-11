@@ -1152,7 +1152,6 @@
                 <label><input id="omakaseAvoidMonthToggle" type="checkbox" />특정 월 회피</label>
                 <label><input id="omakaseAvoidSemesterStart" type="checkbox" />개강 직후 회피</label>
                 <label><input id="omakaseAvoidSemesterEnd" type="checkbox" />종강 직전 회피</label>
-                <label><input id="omakasePreferWeekend" type="checkbox" />주말 위주 선호</label>
                 <label><input id="omakaseAvoidWeekday" type="checkbox" />평일 회피</label>
               </div>
             </div>
@@ -1352,7 +1351,6 @@
       omakaseAvoidMonthToggle: document.querySelector("#omakaseAvoidMonthToggle"),
       omakaseAvoidSemesterStart: document.querySelector("#omakaseAvoidSemesterStart"),
       omakaseAvoidSemesterEnd: document.querySelector("#omakaseAvoidSemesterEnd"),
-      omakasePreferWeekend: document.querySelector("#omakasePreferWeekend"),
       omakaseAvoidWeekday: document.querySelector("#omakaseAvoidWeekday"),
       omakaseAvoidMonths: document.querySelector("#omakaseAvoidMonths"),
       omakaseResult: document.querySelector("#omakaseResult"),
@@ -1406,7 +1404,6 @@
           avoidMonthToggle: el.omakaseAvoidMonthToggle.checked,
           avoidSemesterStart: el.omakaseAvoidSemesterStart.checked,
           avoidSemesterEnd: el.omakaseAvoidSemesterEnd.checked,
-          preferWeekend: el.omakasePreferWeekend.checked,
           avoidWeekday: el.omakaseAvoidWeekday.checked,
           avoidMonths: getSelectedAvoidMonths()
         },
@@ -1454,7 +1451,6 @@
           if (saved.form.preferVacation && (!saved.form.frequency || saved.form.frequency === "auto")) {
             el.omakaseFrequency.value = "vacation";
           }
-          el.omakasePreferWeekend.checked = Boolean(saved.form.preferWeekend);
           el.omakaseAvoidWeekday.checked = Boolean(saved.form.avoidWeekday);
           document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => {
             input.checked = (saved.form.genres || []).includes(input.value);
@@ -1486,7 +1482,7 @@
       el.omakaseFrequency.value = "auto";
       el.omakaseMood.value = "";
       document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => input.checked = false);
-      [el.omakaseAvoidExam, el.omakaseAvoidMonthToggle, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakasePreferWeekend, el.omakaseAvoidWeekday].forEach((input) => input.checked = false);
+      [el.omakaseAvoidExam, el.omakaseAvoidMonthToggle, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakaseAvoidWeekday].forEach((input) => input.checked = false);
       updateAvoidMonthButtons();
       syncOmakaseBudget(200000);
       el.omakaseResult.innerHTML = "";
@@ -2090,7 +2086,6 @@
         hardAvoidMonths: avoidMonthsFromInput(),
         softAvoidMonths: [...softAvoidMonths],
         preferredMonths: [],
-        preferWeekend: el.omakasePreferWeekend.checked,
         avoidWeekday: el.omakaseAvoidWeekday.checked
       };
     }
@@ -2731,7 +2726,7 @@
 
     el.omakaseBudgetSlider.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudgetSlider.value));
     el.omakaseBudget.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudget.value));
-    [el.omakasePersona, el.omakaseFrequency, el.omakaseMood, el.omakaseAvoidExam, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakasePreferWeekend, el.omakaseAvoidWeekday].forEach((input) => {
+    [el.omakasePersona, el.omakaseFrequency, el.omakaseMood, el.omakaseAvoidExam, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakaseAvoidWeekday].forEach((input) => {
       input.addEventListener("change", saveAppState);
     });
     document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => input.addEventListener("change", saveAppState));

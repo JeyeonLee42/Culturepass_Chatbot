@@ -8,6 +8,8 @@
 - `culture_db.js`: 서울 공연 DB 및 좌석별 가격 데이터
 - `README.md`: 프로젝트 설명 문서
 
+> 배포 기준 파일은 레포 루트의 `index.html`, `culture_db.js`, `README.md`로 통일합니다. 이전에 사용하던 `github_repo_files`, `github_repo_files1` 폴더는 더 이상 배포 기준으로 사용하지 않습니다.
+
 ## 주요 기능
 
 - AI 오마카세 연간 관람 플랜 생성
@@ -35,6 +37,7 @@ Netlify 연결 시:
 
 - Build command: 비워둠
 - Publish directory: `/` 또는 비워둠
+- 최종 HTML 파일: 레포 루트의 `index.html`
 
 ## 현재 범위
 
