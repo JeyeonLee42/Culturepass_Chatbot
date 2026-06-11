@@ -621,27 +621,47 @@
     }
 
     .omakase-budget-field {
-      grid-column: span 2;
+      grid-column: 1 / -1;
     }
 
     .omakase-budget-field .slider-row {
       grid-template-columns: minmax(0, 1fr) 94px;
     }
 
+    .omakase-avoid-field,
+    .omakase-month-field {
+      grid-column: 1 / -1;
+    }
+
     .omakase-avoid-checks {
       display: flex;
-      gap: 8px;
+      gap: 7px;
       flex-wrap: wrap;
     }
 
     .omakase-avoid-checks label {
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 7px 10px;
+      min-height: 36px;
+      padding: 6px 12px;
       background: var(--white);
       color: var(--text-sub);
       font-size: 12px;
       font-weight: 750;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .omakase-avoid-checks input {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      flex: 0 0 auto;
+      accent-color: var(--purple);
     }
 
     .month-grid {
@@ -696,6 +716,12 @@
     .omakase-result {
       display: grid;
       gap: 8px;
+    }
+
+    .score-note {
+      color: var(--purple);
+      font-size: 11px;
+      font-weight: 800;
     }
 
     .plan-card {
@@ -994,7 +1020,10 @@
               <h2>AI 오마카세 연간 관람 플래너</h2>
               <p>현재 날짜부터 연말까지 남은 지원금 안에서 관람 계획을 먼저 제안합니다.</p>
             </div>
-            <button class="mini-btn" type="button" id="omakaseButton">AI 오마카세 플랜 만들기</button>
+            <div class="plan-actions">
+              <button class="mini-btn" type="button" id="omakaseButton">AI 오마카세 플랜 만들기</button>
+              <button class="mini-btn" type="button" id="resetStateButton">초기화</button>
+            </div>
           </div>
           <div class="omakase-form">
             <div class="omakase-field omakase-budget-field">
@@ -1034,14 +1063,18 @@
                 <option value="easy">입문자에게 쉬운 작품</option>
               </select>
             </div>
-            <div class="omakase-field">
-              <label>피하고 싶은 시기</label>
+            <div class="omakase-field omakase-avoid-field">
+              <label>피하고 싶은 시기 / 일정 제약</label>
               <div class="omakase-avoid-checks">
                 <label><input id="omakaseAvoidExam" type="checkbox" />시험기간 회피</label>
                 <label><input id="omakaseAvoidMonthToggle" type="checkbox" />특정 월 회피</label>
+                <label><input id="omakaseAvoidSemesterStart" type="checkbox" />개강 직후 회피</label>
+                <label><input id="omakaseAvoidSemesterEnd" type="checkbox" />종강 직전 회피</label>
+                <label><input id="omakasePreferWeekend" type="checkbox" />주말 위주 선호</label>
+                <label><input id="omakaseAvoidWeekday" type="checkbox" />평일 회피</label>
               </div>
             </div>
-            <div class="omakase-field">
+            <div class="omakase-field omakase-month-field">
               <label>회피할 월</label>
               <div class="month-grid" id="omakaseAvoidMonths">
                 <button class="month-btn" type="button" data-month="1" disabled>1월</button>
@@ -1137,6 +1170,9 @@
     ];
     const cultureDb = Array.isArray(window.CULTURE_DB) && window.CULTURE_DB.length ? window.CULTURE_DB : [];
     const TODAY = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const CURRENT_YEAR = Number(TODAY.slice(0, 4));
+    const STORAGE_KEY = "culturepass_omakase_state_v1";
+    let isRestoring = false;
 
     const state = {
       budget: 200000,
@@ -1150,7 +1186,8 @@
       pendingRelated: false,
       relatedSeedId: "",
       criteria: emptyCriteria(),
-      lastResults: []
+      lastResults: [],
+      omakasePlan: []
     };
 
     const el = {
@@ -1176,11 +1213,16 @@
       omakaseMood: document.querySelector("#omakaseMood"),
       omakaseAvoidExam: document.querySelector("#omakaseAvoidExam"),
       omakaseAvoidMonthToggle: document.querySelector("#omakaseAvoidMonthToggle"),
+      omakaseAvoidSemesterStart: document.querySelector("#omakaseAvoidSemesterStart"),
+      omakaseAvoidSemesterEnd: document.querySelector("#omakaseAvoidSemesterEnd"),
+      omakasePreferWeekend: document.querySelector("#omakasePreferWeekend"),
+      omakaseAvoidWeekday: document.querySelector("#omakaseAvoidWeekday"),
       omakaseAvoidMonths: document.querySelector("#omakaseAvoidMonths"),
       omakaseResult: document.querySelector("#omakaseResult"),
       floatingChat: document.querySelector("#floatingChat"),
       chatToggle: document.querySelector("#chatToggle"),
-      chatClose: document.querySelector("#chatClose")
+      chatClose: document.querySelector("#chatClose"),
+      resetStateButton: document.querySelector("#resetStateButton")
     };
 
     function emptyCriteria() {
@@ -1189,6 +1231,116 @@
 
     function formatWon(value) {
       return `${Math.max(0, Math.round(value)).toLocaleString("ko-KR")}원`;
+    }
+
+    function getSelectedGenreValues() {
+      return [...document.querySelectorAll("input[name='omakaseGenre']:checked")].map((input) => input.value);
+    }
+
+    function getSelectedAvoidMonths() {
+      return [...el.omakaseAvoidMonths.querySelectorAll(".month-btn.selected")].map((button) => Number(button.dataset.month));
+    }
+
+    function serializeAppState() {
+      return {
+        budget: state.budget,
+        form: {
+          persona: el.omakasePersona.value,
+          frequency: el.omakaseFrequency.value,
+          mood: el.omakaseMood.value,
+          genres: getSelectedGenreValues(),
+          avoidExam: el.omakaseAvoidExam.checked,
+          avoidMonthToggle: el.omakaseAvoidMonthToggle.checked,
+          avoidSemesterStart: el.omakaseAvoidSemesterStart.checked,
+          avoidSemesterEnd: el.omakaseAvoidSemesterEnd.checked,
+          preferWeekend: el.omakasePreferWeekend.checked,
+          avoidWeekday: el.omakaseAvoidWeekday.checked,
+          avoidMonths: getSelectedAvoidMonths()
+        },
+        cart: state.cart,
+        selectedSeats: state.selectedSeats,
+        schedule: state.schedule,
+        omakasePlan: state.omakasePlan.map((entry) => ({
+          itemId: entry.itemId,
+          month: entry.month,
+          scheduledMonth: entry.scheduledMonth || entry.month,
+          price: entry.price,
+          watchDate: entry.watchDate,
+          reason: entry.reason,
+          scoreBreakdown: entry.scoreBreakdown,
+          totalScore: entry.totalScore
+        }))
+      };
+    }
+
+    function saveAppState() {
+      if (isRestoring) return;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeAppState()));
+    }
+
+    function restoreAppState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        isRestoring = true;
+        const saved = JSON.parse(raw);
+        state.budget = Number(saved.budget) || 200000;
+        state.criteria.budget = state.budget;
+        state.cart = Array.isArray(saved.cart) ? saved.cart.filter((id) => cultureDb.some((item) => item.id === id)) : [];
+        state.selectedSeats = saved.selectedSeats || {};
+        state.schedule = Array.isArray(saved.schedule) ? saved.schedule : [];
+        state.omakasePlan = Array.isArray(saved.omakasePlan) ? saved.omakasePlan : [];
+        if (saved.form) {
+          el.omakasePersona.value = saved.form.persona || "intro";
+          el.omakaseFrequency.value = saved.form.frequency || "auto";
+          el.omakaseMood.value = saved.form.mood || "";
+          el.omakaseAvoidExam.checked = Boolean(saved.form.avoidExam);
+          el.omakaseAvoidMonthToggle.checked = Boolean(saved.form.avoidMonthToggle);
+          el.omakaseAvoidSemesterStart.checked = Boolean(saved.form.avoidSemesterStart);
+          el.omakaseAvoidSemesterEnd.checked = Boolean(saved.form.avoidSemesterEnd);
+          if (saved.form.preferVacation && (!saved.form.frequency || saved.form.frequency === "auto")) {
+            el.omakaseFrequency.value = "vacation";
+          }
+          el.omakasePreferWeekend.checked = Boolean(saved.form.preferWeekend);
+          el.omakaseAvoidWeekday.checked = Boolean(saved.form.avoidWeekday);
+          document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => {
+            input.checked = (saved.form.genres || []).includes(input.value);
+          });
+          updateAvoidMonthButtons();
+          el.omakaseAvoidMonths.querySelectorAll(".month-btn").forEach((button) => {
+            button.classList.toggle("selected", (saved.form.avoidMonths || []).includes(Number(button.dataset.month)));
+          });
+        }
+        syncOmakaseBudget(state.budget);
+        if (state.omakasePlan.length) renderOmakasePlan(state.omakasePlan, state.budget, state.omakasePlan.reduce((sum, entry) => sum + (entry.price || 0), 0));
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+      } finally {
+        isRestoring = false;
+      }
+    }
+
+    function resetAppState() {
+      localStorage.removeItem(STORAGE_KEY);
+      state.budget = 200000;
+      state.used = 0;
+      state.cart = [];
+      state.selectedSeats = {};
+      state.schedule = [];
+      state.omakasePlan = [];
+      state.criteria = emptyCriteria();
+      el.omakasePersona.value = "intro";
+      el.omakaseFrequency.value = "auto";
+      el.omakaseMood.value = "";
+      document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => input.checked = false);
+      [el.omakaseAvoidExam, el.omakaseAvoidMonthToggle, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakasePreferWeekend, el.omakaseAvoidWeekday].forEach((input) => input.checked = false);
+      updateAvoidMonthButtons();
+      syncOmakaseBudget(200000);
+      el.omakaseResult.innerHTML = "";
+      renderCart();
+      renderSchedule();
+      updateConditionStatus();
+      addMessage("bot", "저장된 오마카세 입력값과 장바구니, 플랜을 초기화했습니다.");
     }
 
     function getMinPrice(item) {
@@ -1245,6 +1397,75 @@
 
     function googleDate(value) {
       return value.replaceAll("-", "");
+    }
+
+    function monthOfDate(value) {
+      return value ? Number(String(value).slice(5, 7)) : 0;
+    }
+
+    function scheduledMonthOf(entry) {
+      return Number(entry?.scheduledMonth) || Number(entry?.month) || monthOfDate(entry?.watchDate);
+    }
+
+    function rawMonthRange(month) {
+      const padded = String(month).padStart(2, "0");
+      const last = new Date(CURRENT_YEAR, month, 0).getDate();
+      return {
+        start: `${CURRENT_YEAR}-${padded}-01`,
+        middle: `${CURRENT_YEAR}-${padded}-15`,
+        end: `${CURRENT_YEAR}-${padded}-${String(last).padStart(2, "0")}`
+      };
+    }
+
+    function shortTitle(title) {
+      return (title || "").replace(/[〈〉]/g, "").replace(/\s+-\s+서울.*$/, "").slice(0, 32);
+    }
+
+    function calendarTitle(entry) {
+      return `[청년문화패스] ${shortTitle(entry.title)}`;
+    }
+
+    function getScheduledDateForCalendar(entry, item) {
+      const month = scheduledMonthOf(entry);
+      if (month) {
+        if (entry?.watchDate && monthOfDate(entry.watchDate) === month) return entry.watchDate;
+        const range = rawMonthRange(month);
+        if (item?.startDate && item?.endDate && item.startDate <= range.end && item.endDate >= range.start) {
+          const validStart = item.startDate > range.start ? item.startDate : range.start;
+          const validEnd = item.endDate < range.end ? item.endDate : range.end;
+          return clampDate(range.middle, validStart, validEnd);
+        }
+        return range.middle;
+      }
+      if (entry?.watchDate) return entry.watchDate;
+      return TODAY;
+    }
+
+    function calendarDate(entry, item) {
+      return getScheduledDateForCalendar(entry, item);
+    }
+
+    function calendarDetails(entry, item) {
+      const scheduledMonth = scheduledMonthOf(entry);
+      const date = getScheduledDateForCalendar(entry, item);
+      return [
+        `전체 작품명: ${entry.title}`,
+        `장소: ${entry.venue || item?.venue || "미정"}`,
+        `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`.trim(),
+        entry.reason ? `추천 이유: ${entry.reason}` : "",
+        scheduledMonth ? `AI 오마카세 추천 배치 월: ${scheduledMonth}월` : "",
+        item?.startDate && item?.endDate ? `작품 기간: ${formatDate(item.startDate)} ~ ${formatDate(item.endDate)}` : "",
+        `캘린더 등록일: ${formatDate(date)}`,
+        item?.benefit ? `혜택: ${item.benefit}` : "",
+        entry.ticketOpenDate ? `티켓팅일: ${formatDate(entry.ticketOpenDate)}` : "",
+        entry.reminderDate ? `희망 알림일: ${formatDate(entry.reminderDate)}` : "",
+        item?.url ? `예매 링크: ${item.url}` : "",
+        "Google Calendar에 등록하면 캘린더 앱에서 공연 전 알림을 설정할 수 있습니다."
+      ].filter(Boolean).join("\n");
+    }
+
+    function icsText(value) {
+      return String(value || "").replaceAll("\\", "\\\\").replaceAll("\n", "\\n").replaceAll(",", "\\,").replaceAll(";", "\\;");
     }
 
     function overlapsRange(item, start, end) {
@@ -1521,9 +1742,9 @@
     }
 
     function getMonthRange(month) {
-      const start = `2026-${String(month).padStart(2, "0")}-01`;
-      const last = new Date(2026, month, 0).getDate();
-      const end = `2026-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
+      const start = `${CURRENT_YEAR}-${String(month).padStart(2, "0")}-01`;
+      const last = new Date(CURRENT_YEAR, month, 0).getDate();
+      const end = `${CURRENT_YEAR}-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
       return {
         start: start < TODAY ? TODAY : start,
         end
@@ -1535,14 +1756,14 @@
       let months = [];
       if (frequency === "monthly") months = Array.from({ length: 13 - currentMonth }, (_, index) => currentMonth + index);
       else if (frequency === "quarterly") months = [currentMonth, currentMonth + 3, currentMonth + 6].filter((month) => month <= 12);
-      else if (frequency === "vacation") months = [7, 8, 12].filter((month) => month >= currentMonth);
+      else if (frequency === "vacation") months = [1, 2, 7, 8].filter((month) => month >= currentMonth);
       else months = [currentMonth + 1, currentMonth + 3, currentMonth + 5].filter((month) => month >= currentMonth && month <= 12);
       months = months.filter((month) => !avoidMonths.includes(month));
       return months.length ? months : [currentMonth].filter((month) => !avoidMonths.includes(month));
     }
 
     function selectedOmakaseGenres() {
-      const selected = [...document.querySelectorAll("input[name='omakaseGenre']:checked")].map((input) => input.value);
+      const selected = getSelectedGenreValues();
       if (!selected.length || selected.includes("기타")) return [];
       const expanded = selected.flatMap((genre) => {
         if (genre === "음악") return ["클래식/오페라", "콘서트", "국악"];
@@ -1554,11 +1775,24 @@
 
     function avoidMonthsFromInput() {
       const months = new Set();
-      if (el.omakaseAvoidExam.checked) [4, 6, 10, 11].forEach((month) => months.add(month));
       if (el.omakaseAvoidMonthToggle.checked) {
         el.omakaseAvoidMonths.querySelectorAll(".month-btn.selected").forEach((button) => months.add(Number(button.dataset.month)));
       }
       return [...months].filter((month) => month >= 1 && month <= 12);
+    }
+
+    function avoidConfigFromInput() {
+      const softAvoidMonths = new Set();
+      if (el.omakaseAvoidExam.checked) [4, 6, 10, 12].forEach((month) => softAvoidMonths.add(month));
+      if (el.omakaseAvoidSemesterStart.checked) [3, 9].forEach((month) => softAvoidMonths.add(month));
+      if (el.omakaseAvoidSemesterEnd.checked) [6, 12].forEach((month) => softAvoidMonths.add(month));
+      return {
+        hardAvoidMonths: avoidMonthsFromInput(),
+        softAvoidMonths: [...softAvoidMonths],
+        preferredMonths: [],
+        preferWeekend: el.omakasePreferWeekend.checked,
+        avoidWeekday: el.omakaseAvoidWeekday.checked
+      };
     }
 
     function syncOmakaseBudget(value) {
@@ -1569,6 +1803,7 @@
       state.budget = normalized;
       state.criteria.budget = normalized;
       renderCart();
+      saveAppState();
     }
 
     function updateAvoidMonthButtons() {
@@ -1587,43 +1822,76 @@
       easy: ["인기", "유명", "베스트", "스테디", "입문", "가족", "마티네"]
     };
 
+    const moodTagLabels = {
+      easy: "입문자에게 쉬운 작품",
+      light: "가볍게 즐기고 싶은 작품",
+      moving: "감동적인 작품",
+      tense: "긴장감 있는 작품",
+      artistic: "예술적/실험적인 작품"
+    };
+
     function textPool(item) {
       return [item.title, item.description, item.categoryOriginal, item.genre, item.benefit].filter(Boolean).join(" ");
     }
 
-    function moodMatchCount(item, mood) {
-      if (!mood) return 0;
+    function inferMoodTags(item) {
       const text = textPool(item).toLowerCase();
-      return (moodRules[mood] || []).filter((word) => text.includes(word.toLowerCase())).length;
+      return Object.entries(moodRules).map(([key, keywords]) => {
+        const matchedKeywords = keywords.filter((word) => text.includes(word.toLowerCase()));
+        return { key, label: moodTagLabels[key], matchedKeywords };
+      }).filter((tag) => tag.matchedKeywords.length);
     }
 
-    function omakaseReason(item, config, month, moodHits) {
+    function moodMatchCount(item, mood) {
+      if (!mood) return 0;
+      return inferMoodTags(item).find((tag) => tag.key === mood)?.matchedKeywords.length || 0;
+    }
+
+    function omakaseReason(item, config, month, scoreInfo) {
       const reasons = [];
+      const moodTag = inferMoodTags(item).find((tag) => tag.key === config.mood);
       if (config.genres.includes(item.genre)) reasons.push(`선호 분야인 ${item.genre}에 맞춰 배치했습니다`);
-      if (moodHits) reasons.push(`제목/분류 텍스트의 ${config.moodLabel} 관련 키워드를 반영했습니다`);
-      if (config.persona === "intro") reasons.push("입문자가 접근하기 쉬운 가격대와 공연 유형을 우선했습니다");
-      if (config.persona === "variety") reasons.push("연간 계획 안에서 서로 다른 공연 유형을 경험하도록 구성했습니다");
-      if (config.persona === "value") reasons.push("남은 지원금을 효율적으로 쓰기 위해 최저가가 낮은 후보를 우선했습니다");
-      if (config.avoidMonths.length) reasons.push("피하고 싶은 시기를 제외하고 배치했습니다");
+      if (moodTag) reasons.push(`'${moodTag.matchedKeywords.slice(0, 2).join(", ")}' 키워드를 기반으로 ${moodTag.label}으로 추정했습니다`);
+      if (scoreInfo.budgetScore >= 80) reasons.push("남은 지원금 안에서 부담 없이 배치할 수 있습니다");
+      if (scoreInfo.diversityScore >= 80) reasons.push("연간 계획의 공연 유형 다양성을 높입니다");
+      if (scoreInfo.scheduleScore >= 80) reasons.push("관람 빈도와 회피 시기 조건에 잘 맞습니다");
       if (isClosingSoon(item)) reasons.push("마감 임박 후보라 빠르게 확인할 필요가 있습니다");
       if (!reasons.length) reasons.push(`${month}월 관람 가능 기간과 예산 조건을 기준으로 선정했습니다`);
       return [...new Set(reasons)].slice(0, 2).join(", ");
     }
 
     function scoreOmakaseItem(item, config, month, usedGenres) {
-      let score = 0;
       const price = getMinPrice(item);
+      const monthlyBudget = config.budget / Math.max(1, config.months.length);
+      const budgetScore = price === null ? 55 : Math.max(0, Math.min(100, 100 - Math.max(0, price - monthlyBudget) / Math.max(1, monthlyBudget) * 60));
+      const typeScore = !config.genres.length ? 75 : config.genres.includes(item.genre) ? 100 : 20;
       const moodHits = moodMatchCount(item, config.mood);
-      if (!config.genres.length || config.genres.includes(item.genre)) score += 20;
-      if (config.persona === "variety" && !usedGenres.has(item.genre)) score += 18;
-      if (config.persona === "focus" && config.genres.includes(item.genre)) score += 18;
-      if (config.persona === "value" && price !== null && price <= 40000) score += 20;
-      if (config.persona === "intro" && ["뮤지컬", "연극", "전시", "클래식/오페라"].includes(item.genre)) score += 10;
-      score += moodHits * 10;
-      if (price !== null && price <= config.budget / Math.max(1, config.months.length)) score += 8;
-      if (item.startDate.slice(5, 7) === String(month).padStart(2, "0")) score += 5;
-      if (item.priceTiers?.length) score += 3;
-      return { ...item, score, moodHits };
+      const moodScore = !config.mood ? 70 : Math.min(100, moodHits * 34);
+      const tendencyScore = (() => {
+        if (config.persona === "intro") return ["뮤지컬", "연극", "전시", "클래식/오페라"].includes(item.genre) || inferMoodTags(item).some((tag) => tag.key === "easy") ? 85 : 55;
+        if (config.persona === "variety") return usedGenres.has(item.genre) ? 50 : 95;
+        if (config.persona === "focus") return config.genres.includes(item.genre) ? 95 : 55;
+        if (config.persona === "value") return price !== null && price <= 40000 ? 95 : 55;
+        return 70;
+      })();
+      const scheduleScore = (() => {
+        let score = 78;
+        if (config.avoid.softAvoidMonths.includes(month)) score -= 35;
+        if (config.frequency === "vacation" && [1, 2, 7, 8].includes(month)) score += 18;
+        if (item.startDate.slice(5, 7) === String(month).padStart(2, "0")) score += 7;
+        return Math.max(0, Math.min(100, score));
+      })();
+      const diversityScore = usedGenres.has(item.genre) ? 45 : 95;
+      const totalScore = Math.round(
+        0.25 * budgetScore +
+        0.20 * typeScore +
+        0.20 * moodScore +
+        0.15 * tendencyScore +
+        0.10 * scheduleScore +
+        0.10 * diversityScore
+      );
+      const scoreBreakdown = { budgetScore: Math.round(budgetScore), typeScore, moodScore, tendencyScore, scheduleScore, diversityScore, totalScore };
+      return { ...item, score: totalScore, totalScore, scoreBreakdown, moodHits, inferredMoodTags: inferMoodTags(item) };
     }
 
     function makeOmakasePlan() {
@@ -1634,10 +1902,11 @@
       const frequency = el.omakaseFrequency.value;
       const mood = el.omakaseMood.value;
       const moodLabel = el.omakaseMood.options[el.omakaseMood.selectedIndex]?.text || "";
-      const avoidMonths = avoidMonthsFromInput();
+      const avoid = avoidConfigFromInput();
       const genres = selectedOmakaseGenres();
-      const months = planMonths(frequency, avoidMonths);
-      const config = { budget, persona, frequency, mood, moodLabel, avoidMonths, genres, months };
+      let months = planMonths(frequency, avoid.hardAvoidMonths);
+      avoid.preferredMonths = frequency === "vacation" ? [1, 2, 7, 8].filter((month) => !avoid.hardAvoidMonths.includes(month)) : [];
+      const config = { budget, persona, frequency, mood, moodLabel, avoid, genres, months };
       const usedIds = new Set();
       const usedGenres = new Set();
       let spent = 0;
@@ -1662,14 +1931,23 @@
         usedIds.add(duplicateKey(selected));
         usedGenres.add(selected.genre);
         plan.push({
+          itemId: selected.id,
           month,
+          scheduledMonth: month,
           item: selected,
           price,
-          watchDate: clampDate(range.start, selected.startDate, selected.endDate),
-          reason: omakaseReason(selected, config, month, selected.moodHits)
+          watchDate: getScheduledDateForCalendar({ scheduledMonth: month }, selected),
+          reason: omakaseReason(selected, config, month, selected.scoreBreakdown),
+          scoreBreakdown: selected.scoreBreakdown,
+          totalScore: selected.totalScore
         });
       });
+      state.omakasePlan = plan.map(({ item, ...entry }) => entry);
       renderOmakasePlan(plan, budget, spent);
+      saveAppState();
+      if (months.length < 2 || (config.avoid.hardAvoidMonths.length + config.avoid.softAvoidMonths.length) >= 6) {
+        addMessage("bot", "회피 조건이 많아 추천 가능한 월이 부족합니다. 일부 조건을 완화하면 더 다양한 플랜을 만들 수 있습니다.");
+      }
       addMessage("bot", plan.length
         ? `AI 오마카세 플랜을 ${plan.length}개 일정으로 구성했어요. 예상 사용 금액은 ${formatWon(spent)}, 남은 지원금은 ${formatWon(budget - spent)}입니다.`
         : "조건에 맞는 오마카세 연간 계획을 만들지 못했어요. 예산이나 피하고 싶은 시기를 조금 넓혀주세요.");
@@ -1689,15 +1967,18 @@
       if (!state.cart.includes(id)) state.cart.push(id);
       ensureCheapestSeat(item);
       renderCart();
+      saveAppState();
       addMessage("bot", `「${item.title}」을 장바구니에 담았습니다. 좌석 가격표가 있는 경우 최저가 좌석을 우선 반영했어요.`);
     }
 
-    function addOmakaseItemToSchedule(id, watchDate) {
+    function addOmakaseItemToSchedule(id, watchDate, scheduledMonthValue) {
       const item = cultureDb.find((entry) => entry.id === id);
       if (!item) return;
       if (!state.cart.includes(id)) state.cart.push(id);
       ensureCheapestSeat(item);
       const selected = getSelectedSeat(item);
+      const planEntry = state.omakasePlan.find((entry) => entry.itemId === item.id);
+      const scheduledMonth = Number(scheduledMonthValue) || Number(planEntry?.scheduledMonth) || Number(planEntry?.month) || monthOfDate(watchDate);
       const schedule = {
         id: `${item.id}-omakase-${Date.now()}`,
         itemId: item.id,
@@ -1706,13 +1987,16 @@
         url: item.url,
         seat: selected?.seat || "예매 오픈 후 선택",
         price: selected?.price || 0,
-        watchDate: clampDate(watchDate || item.startDate, item.startDate, item.endDate),
+        scheduledMonth,
+        watchDate: getScheduledDateForCalendar({ watchDate, scheduledMonth }, item),
         ticketOpenDate: item.ticketOpenDate || "",
-        reminderDate: ""
+        reminderDate: "",
+        reason: planEntry?.reason || ""
       };
       state.schedule = state.schedule.filter((entry) => entry.itemId !== item.id).concat(schedule).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
       renderCart();
       renderSchedule();
+      saveAppState();
       addMessage("bot", `「${item.title}」을 ${formatDate(schedule.watchDate)} 관람 일정으로 반영했습니다. 필요하면 장바구니에서 일정 잡기를 눌러 날짜를 조정할 수 있어요.`);
     }
 
@@ -1721,18 +2005,20 @@
         el.omakaseResult.innerHTML = `<p class="empty-cart">조건에 맞는 연간 플랜 후보가 없습니다.</p>`;
         return;
       }
+      const hydratedPlan = plan.map((entry) => ({ ...entry, item: entry.item || cultureDb.find((item) => item.id === entry.itemId) })).filter((entry) => entry.item);
       el.omakaseResult.innerHTML = `
         <div class="rule-note">예상 사용 금액 ${formatWon(spent)} · 남은 지원금 ${formatWon(budget - spent)}</div>
-        ${plan.map((entry) => `
+        ${hydratedPlan.map((entry) => `
           <article class="plan-card">
             <div class="plan-month">${entry.month}월</div>
             <div class="plan-body">
               <strong>${entry.item.title}</strong>
               <div class="plan-meta">${entry.item.genre} · ${formatDate(entry.item.startDate)} - ${formatDate(entry.item.endDate)} · ${priceLabel(entry.item)}</div>
+              <div class="score-note">추천 점수 ${entry.totalScore || entry.scoreBreakdown?.totalScore || "-"}점 · 예산 ${entry.scoreBreakdown?.budgetScore ?? "-"} / 분야 ${entry.scoreBreakdown?.typeScore ?? "-"} / 분위기 ${entry.scoreBreakdown?.moodScore ?? "-"}</div>
               <div class="plan-reason">${entry.reason}</div>
               <div class="plan-actions">
                 <button class="mini-btn" type="button" data-omakase-add="${entry.item.id}">장바구니 담기</button>
-                <button class="mini-btn" type="button" data-omakase-schedule="${entry.item.id}" data-watch-date="${entry.watchDate}">일정 반영</button>
+                <button class="mini-btn" type="button" data-omakase-schedule="${entry.item.id}" data-watch-date="${entry.watchDate}" data-scheduled-month="${entry.scheduledMonth || entry.month}">일정 반영</button>
               </div>
             </div>
           </article>`).join("")}`;
@@ -1846,6 +2132,7 @@
       state.schedule = state.schedule.filter((entry) => entry.itemId !== item.id).concat(schedule).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
       state.pendingScheduleId = "";
       renderSchedule();
+      saveAppState();
       const schedulePriceText = schedule.seat === "일반" ? formatWon(schedule.price) : `${schedule.seat}${schedule.price ? ` ${formatWon(schedule.price)}` : ""}`;
       if (schedule.ticketOpenDate) {
         state.pendingReminderPromptId = schedule.id;
@@ -1891,19 +2178,20 @@
       schedule.reminderDate = reminderDate;
       state.pendingReminderInputId = "";
       renderSchedule();
+      saveAppState();
       addMessage("bot", `좋아요. 「${schedule.title}」 티켓팅 알림을 ${formatDate(reminderDate)}로 설정했어요.\nICS 저장을 하면 티켓팅 알림 일정이 함께 들어가고, Google Calendar 등록 링크에는 알림일을 메모로 남겨둘 수 있어요.`);
       return true;
     }
 
     function buildGoogleCalendarUrl(entry) {
       const item = cultureDb.find((target) => target.id === entry.itemId);
-      const details = [`청년문화예술패스 후보`, `작품: ${entry.title}`, `장소: ${entry.venue}`, `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`, entry.ticketOpenDate ? `티켓팅일: ${formatDate(entry.ticketOpenDate)}` : "", entry.reminderDate ? `희망 알림일: ${formatDate(entry.reminderDate)}` : "", item?.benefit || "", item?.url || ""].filter(Boolean).join("\\n");
+      const date = calendarDate(entry, item);
       const params = new URLSearchParams({
         action: "TEMPLATE",
-        text: entry.title,
-        dates: `${googleDate(entry.watchDate)}/${googleDate(addDays(entry.watchDate, 1))}`,
+        text: calendarTitle(entry),
+        dates: `${googleDate(date)}/${googleDate(addDays(date, 1))}`,
         location: entry.venue,
-        details
+        details: calendarDetails(entry, item)
       });
       return `https://calendar.google.com/calendar/render?${params.toString()}`;
     }
@@ -1934,8 +2222,8 @@
       }
       state.schedule = items.map((item) => {
         const selected = getSelectedSeat(item);
-        const start = item.startDate < "2026-01-01" ? "2026-01-01" : item.startDate;
-        const end = item.endDate > "2026-12-31" ? "2026-12-31" : item.endDate;
+        const start = item.startDate < TODAY ? TODAY : item.startDate;
+        const end = item.endDate > `${CURRENT_YEAR}-12-31` ? `${CURRENT_YEAR}-12-31` : item.endDate;
         const preferred = start <= end ? start : item.startDate;
         return {
           id: `${item.id}-auto`,
@@ -1946,11 +2234,13 @@
           seat: selected?.seat || "예매 오픈 후 선택",
           price: selected?.price || 0,
           watchDate: preferred,
+          scheduledMonth: monthOfDate(preferred),
           ticketOpenDate: item.ticketOpenDate || "",
           reminderDate: ""
         };
       }).sort((a, b) => a.watchDate.localeCompare(b.watchDate));
       renderSchedule();
+      saveAppState();
       addMessage("bot", "장바구니 작품을 공연 가능 기간 안에서 1년 일정 초안으로 배치했습니다.\n\n기간이 긴 작품은 실제로 언제 볼지 사용자의 선호가 중요해서, 각 작품의 ‘일정 잡기’를 눌러 희망 월/날짜를 다시 알려주면 더 정확히 조정할 수 있어요.");
     }
 
@@ -1962,13 +2252,14 @@
       const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//CulturePass Chatbot MVP//KO"];
       state.schedule.forEach((entry) => {
         const item = cultureDb.find((target) => target.id === entry.itemId);
+        const date = calendarDate(entry, item);
         lines.push("BEGIN:VEVENT");
         lines.push(`UID:${entry.id}@culturepass-mvp`);
-        lines.push(`SUMMARY:${entry.title.replaceAll("\n", " ")}`);
-        lines.push(`DTSTART;VALUE=DATE:${googleDate(entry.watchDate)}`);
-        lines.push(`DTEND;VALUE=DATE:${googleDate(addDays(entry.watchDate, 1))}`);
-        lines.push(`LOCATION:${(entry.venue || "").replaceAll("\n", " ")}`);
-        lines.push(`DESCRIPTION:${["청년문화예술패스 관람 후보", `작품: ${entry.title}`, `장소: ${entry.venue}`, `좌석/가격: ${entry.seat || "미정"} ${entry.price ? formatWon(entry.price) : ""}`, item?.benefit || "", item?.url || ""].filter(Boolean).join("\\n")}`);
+        lines.push(`SUMMARY:${icsText(calendarTitle(entry))}`);
+        lines.push(`DTSTART;VALUE=DATE:${googleDate(date)}`);
+        lines.push(`DTEND;VALUE=DATE:${googleDate(addDays(date, 1))}`);
+        lines.push(`LOCATION:${icsText(entry.venue || "")}`);
+        lines.push(`DESCRIPTION:${icsText(calendarDetails(entry, item))}`);
         lines.push("END:VEVENT");
         if (entry.ticketOpenDate && entry.reminderDate) {
           const diff = Math.max(0, daysBetween(entry.reminderDate, entry.ticketOpenDate));
@@ -1977,12 +2268,12 @@
           lines.push(`DTSTAMP:${googleDate(TODAY)}T000000Z`);
           lines.push(`DTSTART;VALUE=DATE:${googleDate(entry.ticketOpenDate)}`);
           lines.push(`DTEND;VALUE=DATE:${googleDate(addDays(entry.ticketOpenDate, 1))}`);
-          lines.push(`SUMMARY:${entry.title} 티켓팅`);
-          lines.push(`DESCRIPTION:${["청년문화예술패스 티켓팅 알림", `작품: ${entry.title}`, `티켓팅일: ${formatDate(entry.ticketOpenDate)}`, `알림일: ${formatDate(entry.reminderDate)}`, item?.url || ""].filter(Boolean).join("\\n")}`);
+          lines.push(`SUMMARY:${icsText(calendarTitle({ ...entry, title: `${entry.title} 티켓팅` }))}`);
+          lines.push(`DESCRIPTION:${icsText(["청년문화예술패스 티켓팅 알림", `작품: ${entry.title}`, `티켓팅일: ${formatDate(entry.ticketOpenDate)}`, `알림일: ${formatDate(entry.reminderDate)}`, item?.url || ""].filter(Boolean).join("\n"))}`);
           lines.push("BEGIN:VALARM");
           lines.push(diff ? `TRIGGER:-P${diff}D` : "TRIGGER:PT0M");
           lines.push("ACTION:DISPLAY");
-          lines.push(`DESCRIPTION:${entry.title} 티켓팅 알림`);
+          lines.push(`DESCRIPTION:${icsText(`${entry.title} 티켓팅 알림`)}`);
           lines.push("END:VALARM");
           lines.push("END:VEVENT");
         }
@@ -2088,7 +2379,9 @@
 
     function init() {
       addMessage("bot", `안녕하세요. 서울 공연 DB ${cultureDb.length.toLocaleString("ko-KR")}개 작품을 기준으로 추천해드릴게요.\n\n직접 조건을 말해 작품을 추천받을 수도 있고, 위의 AI 오마카세 플래너로 연말까지의 관람 계획을 먼저 받아볼 수도 있어요.`);
-      syncOmakaseBudget(el.omakaseBudget.value);
+      const hasSavedState = Boolean(localStorage.getItem(STORAGE_KEY));
+      if (hasSavedState) restoreAppState();
+      else syncOmakaseBudget(el.omakaseBudget.value);
       updateAvoidMonthButtons();
       updateConditionStatus();
       renderCart();
@@ -2097,11 +2390,19 @@
 
     el.omakaseBudgetSlider.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudgetSlider.value));
     el.omakaseBudget.addEventListener("input", () => syncOmakaseBudget(el.omakaseBudget.value));
-    el.omakaseAvoidMonthToggle.addEventListener("change", updateAvoidMonthButtons);
+    [el.omakasePersona, el.omakaseFrequency, el.omakaseMood, el.omakaseAvoidExam, el.omakaseAvoidSemesterStart, el.omakaseAvoidSemesterEnd, el.omakasePreferWeekend, el.omakaseAvoidWeekday].forEach((input) => {
+      input.addEventListener("change", saveAppState);
+    });
+    document.querySelectorAll("input[name='omakaseGenre']").forEach((input) => input.addEventListener("change", saveAppState));
+    el.omakaseAvoidMonthToggle.addEventListener("change", () => {
+      updateAvoidMonthButtons();
+      saveAppState();
+    });
     el.omakaseAvoidMonths.addEventListener("click", (event) => {
       const button = event.target.closest(".month-btn");
       if (!button || button.disabled) return;
       button.classList.toggle("selected");
+      saveAppState();
     });
 
     el.form.addEventListener("submit", (event) => {
@@ -2132,7 +2433,7 @@
       }
       const scheduleButton = event.target.closest("[data-omakase-schedule]");
       if (scheduleButton) {
-        addOmakaseItemToSchedule(scheduleButton.dataset.omakaseSchedule, scheduleButton.dataset.watchDate);
+        addOmakaseItemToSchedule(scheduleButton.dataset.omakaseSchedule, scheduleButton.dataset.watchDate, scheduleButton.dataset.scheduledMonth);
       }
     });
 
@@ -2142,6 +2443,7 @@
       const id = button.dataset.add;
       if (!state.cart.includes(id)) state.cart.push(id);
       renderCart();
+      saveAppState();
       button.textContent = "담김";
       button.classList.add("added");
     });
@@ -2161,6 +2463,7 @@
         }
         state.selectedSeats[id] = { seat: seat.trim(), price };
         renderCart();
+        saveAppState();
         addMessage("bot", `「${item?.title || "선택 작품"}」의 예매 좌석을 ${seat.trim()} ${formatWon(price)}로 확인했습니다. 이 금액을 예산 계산과 캘린더 메모에 반영할게요.`);
         return;
       }
@@ -2176,6 +2479,7 @@
       state.schedule = state.schedule.filter((entry) => entry.itemId !== button.dataset.remove);
       renderCart();
       renderSchedule();
+      saveAppState();
     });
 
     el.cartList.addEventListener("change", (event) => {
@@ -2189,8 +2493,10 @@
       }
       renderCart();
       renderSchedule();
+      saveAppState();
     });
 
+    el.resetStateButton.addEventListener("click", resetAppState);
     el.autoScheduleButton.addEventListener("click", autoScheduleCart);
     el.exportIcsButton.addEventListener("click", exportIcs);
 
