@@ -1616,7 +1616,7 @@
 
     function calendarTitle(entry) {
       const month = scheduledMonthOf(entry);
-      return month ? `[청년문화예술패스] ${month}월 관람 추천` : `[청년문화예술패스] 관람 추천 메모`;
+      return month ? `[청년문화예술패스] ${month}월 월별 계획` : `[청년문화예술패스] 월별 계획 메모`;
     }
 
     function getScheduledDateForCalendar(entry, item) {
@@ -2572,11 +2572,11 @@
         .sort((a, b) => (a.month || 99) - (b.month || 99));
       el.scheduleList.innerHTML = hydratedSchedule.map((entry) => `
         <article class="schedule-item">
-          <strong>${monthLabel(entry.month)} 관람 추천</strong>
+          <strong>추천 월: ${monthLabel(entry.month)}</strong>
           <span>${entry.title}</span>
           <span>${entry.item?.startDate && entry.item?.endDate ? `공연 기간: ${formatDate(entry.item.startDate)} ~ ${formatDate(entry.item.endDate)}` : ""}</span>
           <span>${entry.venue} · ${entry.seat}${entry.price ? ` ${formatWon(entry.price)}` : ""}</span>
-          <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">추천 월 캘린더에 저장</a>
+          <a href="${buildGoogleCalendarUrl(entry)}" target="_blank" rel="noreferrer">캘린더 메모 저장</a>
         </article>`).join("");
     }
 
